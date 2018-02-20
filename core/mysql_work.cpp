@@ -8,6 +8,9 @@
 */
 #include "mysql_work.h"
 #include "lock.h"
+#include "console.h"
+#include <cstring>
+#include "lua/luawork.h"
 
 class MSCON {
 public:
@@ -69,9 +72,29 @@ int mysqlwork::execute(lua_State* L)
 {
 	MSCON *m = (MSCON*)luaL_checkudata(L, 1, "mysql_connection");
   MYSQL *con = m->con;
+	// Make SQL query (format string)
+	const char* query = luaL_checkstring(L, 2);
+	int nStrings = lua_gettop(L) - 1; // -table
+	lua_getglobal(L, "string");
+	lua_getfield(L,-1, "format");
+	lua_pushstring(L, query);
+	for (int i = 1; i < nStrings; i++) {
+		const char *from = luaL_checkstring(L, i + 2);
+    char to[256];
+    unsigned long len = mysql_real_escape_string(con, to, from, strlen(from));
+		to[len] = '\0';
+		lua_pushstring(L, to);
+	}
+	luawork::safeCall(L, nStrings, 1);
+	query = luaL_checkstring(L, -1);
+	lua_settop(L, 0);
+
   // Do SQL query
 	lock_lock(m->sect);
-  if (mysql_query(con, luaL_checkstring(L, 2))) luaL_error(L, mysql_error(con));
+  if (mysql_query(con, query)) {
+		lock_unlock(m->sect);
+		 luaL_error(L, mysql_error(con));
+	}
   MYSQL_RES *res = mysql_store_result(con);
 	lock_unlock(m->sect);
 
