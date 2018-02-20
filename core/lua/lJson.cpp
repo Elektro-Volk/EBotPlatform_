@@ -84,7 +84,7 @@ int lJson::decode(lua_State *L)
     pushValue(L, j);
   }
   catch (nlohmann::detail::parse_error e) {
-		lua_error(L, e.what());
+		luaL_error(L, e.what());
 	}
   return 1;
 }
