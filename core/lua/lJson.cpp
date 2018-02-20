@@ -78,9 +78,13 @@ bool pushValue(lua_State *L, json &value)
 
 int lJson::decode(lua_State *L)
 {
-  json j = json::parse(luaL_checkstring(L, -1));
-  lua_pop(L, 1);
-  pushValue(L, j);
-  //stackDump(L);
+  try {
+    json j = json::parse(luaL_checkstring(L, -1));
+    lua_pop(L, 1);
+    pushValue(L, j);
+  }
+  catch (nlohmann::detail::parse_error e) {
+		lua_error(L, e.what());
+	}
   return 1;
 }
