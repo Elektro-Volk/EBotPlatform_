@@ -8,7 +8,7 @@
 #include "cmd.h" // cmd::init, cmd::exec, cmd::start
 
 string bot_path = "bot";
-const string _version = "0.6.0.11";
+const string _version = "0.6.0.12";
 int startTime = time(0);
 
 int main(int argc, char* argv[])

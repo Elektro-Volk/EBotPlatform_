@@ -70,6 +70,7 @@ void lapi::openApi(lua_State *L)
 		{ "split", lapi::funcs::str::split }
   });
 
+  // net
   LoadNamespace(L, "net", {
     { "send", net::lua::send },
     { "jSend", net::lua::jSend }
@@ -83,11 +84,10 @@ void lapi::openApi(lua_State *L)
   });
 
 
-  lua_pushstring(L, _version.c_str());
-	lua_setglobal(L, "_VERSION");
-  lua_pushstring(L, bot_path.c_str());
-	lua_setglobal(L, "root");
+  lua_pushstring(L, _version.c_str()); lua_setglobal(L, "_VERSION");
+  lua_pushstring(L, bot_path.c_str()); lua_setglobal(L, "root");
 
+  lua_register(L, "trand", lapi::funcs::randtable);
   lua_register(L, "uptime", lapi::funcs::uptime);
   lua_register(L, "relua", lapi::funcs::relua);
   lua_register(L, "getId", lapi::funcs::getId);
@@ -100,65 +100,4 @@ void lapi::openApi(lua_State *L)
 
   // JSON
   lua_register(L, "jDecode", lJson::decode); // jsonString -> table
-  // Other
-  //lua_register(L, name, func);
-  /*
-
-
-	R->Functions("cvar", {
-		{ "exists", cvar::lua::exists },
-		{ "set", cvar::lua::set },
-		{ "add", cvar::lua::add },
-		{ "get", cvar::lua::get }
-	});
-
-	R->Functions("filesystem", {
-		{ "exists", fs::lua::exists },
-		{ "root", fs::lua::getRootPath },
-		{ "readLines", fs::lua::readLines },
-		{ "read", fs::lua::read }
-	});
-
-
-
-
-	R->Functions("random", { { "get", utils::lua::random::get } });
-
-	R->Functions("timer", {
-		{ "add", timer::lua::add },
-		{ "kill", timer::lua::kill }
-	});
-
-	R->Functions("saver", {
-		{ "add", saver::lua::add },
-		{ "save", saver::lua::save },
-		{ "load", saver::lua::load }
-	});
-
-	// Other
-	lua_pushstring(S->L, other::getVersionName().c_str());
-	lua_setglobal(S->L, "_VERSION");
-
-	R->GlobalFunctions({
-		{ "uptime", utils::lua::uptime },
-		{ "getId", utils::lua::getId },
-		{ "addline", utils::lua::addline },
-		{ "connect", _utils::connect },
-		{ "connectModule", _utils::connectModule },
-		{ "print", _utils::print },
-		{ "isFlag", utils::lua::isFlag },
-		{ "getPeer", luawork::_utils::getPeer },
-		{ "resp", luawork::_utils::resp },
-		{ "nQueue", luawork::_utils::getQueue },
-		{ "nThreads", luawork::_utils::getThreads }
-	});
-
-	// Connect default modules
-	S->getGlobal("require");
-	lua_pushstring(S->L, "data/lua/json");
-	S->safeCall(1);
-	lua_setglobal(S->L, "JSON");
-
-	delete R;
-  */
 }

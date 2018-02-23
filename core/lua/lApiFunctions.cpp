@@ -6,6 +6,17 @@
 #include "../strutils.h"
 #include <map>
 
+int lapi::funcs::randtable(lua_State *L)
+{
+  lua_settop(L, 1);
+  luaL_checktype(L, 1, LUA_TTABLE);
+  lua_len(L,1);
+  int len = lua_tointeger(L,-1);
+  lua_pushinteger(L,1+rand()%len);
+  lua_rawget(L,1);
+  return 1;
+}
+
 // int uptime()
 int lapi::funcs::uptime(lua_State *L)
 {

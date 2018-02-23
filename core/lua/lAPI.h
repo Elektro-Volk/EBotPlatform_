@@ -4,6 +4,7 @@ namespace lapi {
   void openApi(lua_State *L);
 
   namespace funcs {
+    int randtable(lua_State *L);
     int uptime(lua_State *L);
     int relua(lua_State *L);
     int getId(lua_State *L);
