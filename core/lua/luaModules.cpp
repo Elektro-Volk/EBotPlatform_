@@ -55,8 +55,10 @@ void luaModules::loadModules(lua_State *L)
 		}
 		lua_settop(L, 0);
 	}
+}
 
-  // Start
+void luaModules::startModules(lua_State *L)
+{
   for (auto it = list.begin(); it != list.end(); ++it)
 	{
 		lua_getglobal(L, it->name.c_str());
@@ -67,6 +69,7 @@ void luaModules::loadModules(lua_State *L)
 		lua_settop(L, 0);
 	}
 }
+
 
 void luaModules::load()
 {

@@ -36,7 +36,7 @@ void luawork::start()
       throw new string("lua[load] -> " + string(lua_tostring(state, -1)));
     if(lua_pcall(state, 0, LUA_MULTRET, 0))
       throw new string("lua[start] -> " + string(lua_tostring(state, -1)));
-
+    luaModules::startModules(state);
     luapool::start();
     luawork::isWorking = true;
     con::log("Lua has been loaded.");

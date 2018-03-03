@@ -15,6 +15,7 @@ namespace luaModules {
 		string c_mrem(vector<string> cmd_args);
 		string c_mlist(vector<string> cmd_args);
 		void loadModules(lua_State *L);
+		void startModules(lua_State *L);
 		void load();
 		void save();
 	};
