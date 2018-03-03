@@ -33,8 +33,10 @@ void stackDump (lua_State *L) {
 
 int lJson::encode(lua_State *L)
 {
-return 0;
+return 0; // TODO
 }
+
+// --------------- DECODER ---------------
 
 void pushObject(lua_State *L, json &j)
 {
