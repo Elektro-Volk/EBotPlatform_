@@ -36,6 +36,7 @@ void longpoll::LongPoll::getServer()
 void longpoll::LongPoll::onFailed(rapidjson::Document& data)
 {
 	int code = data["failed"].GetInt();
+	con::log("LongPoll failed: " + to_string(code));
 	switch(code){
 		case 1: params["ts"] = to_string(data["ts"].GetInt()); break;
 		case 2: getServer(); break;
