@@ -16,6 +16,7 @@ void luawork::init()
 {
   cvars::add("lua_script", &script_path);
   cmd::add("relua", luawork::c_relua, "Reload lua scripts");
+  cmd::add("pools", luawork::c_pools, "Lua pools list");
   cmd::add("mlist", luaModules::c_mlist, "Lua modules list");
   luaModules::load();
 }
@@ -73,4 +74,14 @@ string luawork::c_relua(vector<string> _args)
   luawork::close();
   luawork::start();
   return "Lua has been reloaded.";
+}
+
+string luawork::c_pools(vector<string> _args)
+{
+  std::string ret = "\nLua pools:";
+	for (int i = 0; i < luapool::pools.size(); i++)
+	{
+		ret += "\n" + to_string(i) + " - " + (luapool::pools[i]->isFree() ? "free" : "busy");
+	}
+	return ret;
 }

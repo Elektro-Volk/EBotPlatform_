@@ -15,4 +15,5 @@ namespace luawork {
   bool safeCall(lua_State* L, int argnum = 0, int retnum = 0);
   void close();
   string c_relua(vector<string> _args);
+  string c_pools(vector<string> _args);
 }
