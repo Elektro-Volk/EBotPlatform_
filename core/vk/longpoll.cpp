@@ -35,13 +35,13 @@ void longpoll::LongPoll::getServer()
 
 void longpoll::LongPoll::onFailed(rapidjson::Document& data)
 {
-	/*int code = data["failed"];
+	int code = data["failed"].GetInt();
 	switch(code){
-		//case 1: params["ts"] = to_string((int)data["ts"]); break;
+		case 1: params["ts"] = to_string(data["ts"].GetInt()); break;
 		case 2: getServer(); break;
 		case 3: getServer(); break;
 		case 4: break;
-	}*/
+	}
 }
 
 void longpoll::LongPoll::loop()
