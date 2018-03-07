@@ -1,6 +1,6 @@
 #pragma once
 #include "../common.h"
-#include "../json.hpp"
+#include "rapidjson/document.h"
 #include "../lua/lJson.h"
 #include <map>
 
@@ -20,7 +20,7 @@ namespace vk {
   void init();
   void start();
   string send(string method, map<string, string> params = {});
-  nlohmann::json jSend(string method, map<string, string> params = {});
+  rapidjson::Document jSend(string method, map<string, string> params = {});
 
   namespace lua {
     void initVK(lua_State *L);

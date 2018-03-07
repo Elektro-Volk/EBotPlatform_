@@ -1,7 +1,7 @@
 #pragma once
 #include <thread>
 #include <vector>
-#include "../json.hpp"
+#include "rapidjson/document.h"
 #include "luai.h"
 
 namespace luapool {
@@ -27,5 +27,5 @@ namespace luapool {
 
   void start();
   void close();
-  void add(nlohmann::json msg);
+  void add(rapidjson::Value &msg);
 }

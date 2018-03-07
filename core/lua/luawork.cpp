@@ -1,14 +1,12 @@
 #include "luawork.h"
 #include "luai.h"
-#include "lJson.h"
+#include "rapidjson/document.h"
 #include "lAPI.h"
 #include "../cvar.h"
 #include "../console.h"
 #include "../cmd.h"
 #include "luaModules.h"
 #include "luapool.h"
-
-using json = nlohmann::json;
 
 lua_State *luawork::state;
 string luawork::script_path = "main.lua";
@@ -19,8 +17,6 @@ void luawork::init()
   cvars::add("lua_script", &script_path);
   cmd::add("relua", luawork::c_relua, "Reload lua scripts");
   cmd::add("mlist", luaModules::c_mlist, "Lua modules list");
-  cmd::add("madd", luaModules::c_madd, "Add module");
-  cmd::add("mrem", luaModules::c_mrem, "Remove module");
   luaModules::load();
 }
 
@@ -49,10 +45,11 @@ void luawork::start()
   }
 }
 
-void luawork::push(json msg)
+void luawork::push(rapidjson::Value &msg)
 {
   if(!luawork::isWorking) return;
   luapool::add(msg);
+  lua_settop(luawork::state, 0);
 }
 
 bool luawork::safeCall(lua_State* L, int argnum, int retnum)

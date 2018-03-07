@@ -1,7 +1,7 @@
 CC=g++ -g
 CFLAGS=-std=c++11 -c
 LDFLAGS=-Llua -lelua -lcurl -DLUA_USER_H=\"../lua/lua_user.h\" -ldl  -lmysqlclient -lpthread
-INCLUDES=-L/usr/local/lib
+INCLUDES=-L/usr/local/lib -Irjson/include/
 SOURCES=	\
 	core/main.cpp \
 	core/net.cpp \
@@ -18,7 +18,8 @@ SOURCES=	\
 	core/lua/luaModules.cpp \
 	core/filesystem.cpp \
 	core/mysql_work.cpp \
-	core/lua/luapool.cpp
+	core/lua/luapool.cpp \
+	core/eapi/eapi.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
 EXECUTABLE=EBP
 

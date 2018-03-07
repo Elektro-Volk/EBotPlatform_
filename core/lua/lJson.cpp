@@ -1,35 +1,14 @@
 #include "lJson.h"
-#include "../json.hpp"
+#include "rapidjson/document.h"
+#include "rapidjson/error/en.h"
 #include "../common.h"
 #include "../console.h"
 
-using json = nlohmann::json;
+using namespace rapidjson;
 
-void pushObject(lua_State *L, json &j);
-void pushArray(lua_State *L, json &array);
-bool pushValue(lua_State *L, json &value);
-
-void stackDump (lua_State *L) {
-          int i=lua_gettop(L);
-          printf(" ----------------  Stack Dump ----------------\n" );
-          while(  i   ) {
-            int t = lua_type(L, i);
-            switch (t) {
-              case LUA_TSTRING:
-                printf("%d:`%s'\n", i, lua_tostring(L, i));
-              break;
-              case LUA_TBOOLEAN:
-                printf("%d: %s\n",i,lua_toboolean(L, i) ? "true" : "false");
-              break;
-              case LUA_TNUMBER:
-                printf("%d: %g\n",  i, lua_tonumber(L, i));
-             break;
-             default: printf("%d: %s\n", i, lua_typename(L, t)); break;
-            }
-           i--;
-          }
-         printf("--------------- Stack Dump Finished ---------------\n" );
-    }
+void pushObject(lua_State *L, const rapidjson::Value &j);
+void pushArray(lua_State *L, const rapidjson::Value &array);
+bool pushValue(lua_State *L, const rapidjson::Value &value);
 
 int lJson::encode(lua_State *L)
 {
@@ -38,23 +17,19 @@ return 0; // TODO
 
 // --------------- DECODER ---------------
 
-void pushObject(lua_State *L, json &j)
+void pushObject(lua_State *L, const rapidjson::Value &j)
 {
   lua_newtable(L);
-  for (json::iterator it = j.begin(); it != j.end(); ++it) {
-    string v = it.key();
-    lua_pushstring(L, v.c_str());
-    if(pushValue(L, it.value()))
-      lua_settable(L, -3);
-    else
-      lua_pop(L, 1);
+  for (Value::ConstMemberIterator it = j.MemberBegin(); it != j.MemberEnd(); ++it) {
+    lua_pushstring(L, it->name.GetString());
+    if(pushValue(L, it->value)) lua_settable(L, -3); else lua_pop(L, 1);
   }
 }
 
-void pushArray(lua_State *L, json &array)
+void pushArray(lua_State *L, const rapidjson::Value &array)
 {
   lua_newtable(L);
-  for (int i = 0; i < array.size(); i++) {
+  for (int i = 0; i < array.Size(); i++) {
     lua_pushinteger(L, i + 1);
     if(pushValue(L, array[i]))
       lua_settable(L, -3);
@@ -63,16 +38,21 @@ void pushArray(lua_State *L, json &array)
   }
 }
 
-bool pushValue(lua_State *L, json &value)
+bool pushValue(lua_State *L, const rapidjson::Value &value)
 {
-  switch (value.type()) {
-    case json::value_t::object: { pushObject(L, value); break; }
-    case json::value_t::array:  { pushArray(L, value); break; }
-    case json::value_t::string: { string v = value; lua_pushstring(L, v.c_str()); break; }
-    case json::value_t::number_integer: { lua_pushinteger(L, (int)value); break; }
-    case json::value_t::number_unsigned: { lua_pushinteger(L, (int)value); break; }
-    case json::value_t::number_float: { lua_pushnumber(L, (float)value); break; }
-    case json::value_t::boolean: { lua_pushboolean(L, (bool)value); break; }
+  switch (value.GetType()) {
+    case 1: { lua_pushboolean(L, false); break; }
+    case 2: { lua_pushboolean(L, true ); break; }
+    case 3: { pushObject(L, value); break; }
+    case 4: { pushArray(L, value); break; }
+    case 5: { lua_pushstring(L, value.GetString()); break; }
+    case 6: {
+      if(value.IsDouble())
+        lua_pushnumber(L, value.GetDouble());
+      else
+        lua_pushinteger(L, value.GetInt());
+      break;
+    }
     default: { return false; break; }
   }
   return true;
@@ -80,13 +60,13 @@ bool pushValue(lua_State *L, json &value)
 
 int lJson::decode(lua_State *L)
 {
-  try {
-    json j = json::parse(luaL_checkstring(L, -1));
-    lua_pop(L, 1);
-    pushValue(L, j);
+  rapidjson::Document j;
+  rapidjson::ParseResult ok = j.Parse(luaL_checkstring(L, -1));
+  if(!ok) {
+     luaL_error(L, "JSON parse error: %s (%d)", rapidjson::GetParseError_En(ok.Code()), ok.Offset());
+     return 1;
   }
-  catch (nlohmann::detail::parse_error e) {
-		luaL_error(L, e.what());
-	}
+  lua_pop(L, 1);
+  pushValue(L, j);
   return 1;
 }

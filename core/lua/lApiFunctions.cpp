@@ -40,12 +40,8 @@ int lapi::funcs::getId(lua_State *L)
 		url = tokens[tokens.size() - 1];
 	}
 
-	nlohmann::json result = vk::jSend("utils.resolveScreenName",
-	{ { "screen_name", url } }).at("response");
-	if (result.find("object_id") == result.end())
-		lua_pushnil(L);
-	else
-		lua_pushinteger(L, (int)result.at("object_id"));
+	rapidjson::Value &result = vk::jSend("utils.resolveScreenName", {{"screen_name", url}})["response"];
+	if (result.HasMember("object_id")) lua_pushinteger(L, result["object_id"].GetInt()); else lua_pushnil(L);
 	return 1;
 }
 

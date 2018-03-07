@@ -1,6 +1,6 @@
 #pragma once
 #include "../common.h"
-#include "../json.hpp"
+#include "rapidjson/document.h"
 #include <map>
 
 namespace longpoll {
@@ -9,7 +9,7 @@ namespace longpoll {
     string server;
     map<string, string> params;
     void getServer();
-    void onFailed(nlohmann::json data);
+    void onFailed(rapidjson::Document& data);
   public:
     LongPoll();
     void loop();

@@ -2,7 +2,7 @@
 #include "../common.h"
 #include "luai.h"
 #include <vector>
-#include "../json.hpp"
+#include "rapidjson/document.h"
 
 namespace luawork {
   extern lua_State *state;
@@ -11,7 +11,7 @@ namespace luawork {
 
   void init();
   void start();
-  void push(nlohmann::json msg);
+  void push(rapidjson::Value &msg);
   bool safeCall(lua_State* L, int argnum = 0, int retnum = 0);
   void close();
   string c_relua(vector<string> _args);

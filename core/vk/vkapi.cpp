@@ -15,7 +15,7 @@ void vk::init()
 void vk::start()
 {
   auto data = vk::jSend("stats.trackVisitor");
-	if (data.find("error") != data.end()) {
+	if (data.HasMember("error")) {
 		con::error("Wrong vk_token");
     con::error("Please, setting you config.cfg");
 		HostEnd(-1);
@@ -32,9 +32,11 @@ string vk::send(string method, map<string, string> params)
   return net::POST("https://api.vk.com/method/" + method, params);
 }
 
-nlohmann::json vk::jSend(string method, map<string, string> params)
+rapidjson::Document vk::jSend(string method, map<string, string> params)
 {
-  return nlohmann::json::parse(vk::send(method, params));
+  rapidjson::Document document;
+  document.Parse(vk::send(method, params).c_str());
+  return document;
 }
 
 /* LUA */

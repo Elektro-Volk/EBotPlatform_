@@ -3,6 +3,7 @@
 #include "console.h" // con::init, con::log
 #include "vk/longpoll.h" // longpoll::start
 #include "vk/vkapi.h" // vk::init, vk::start
+#include "eapi/eapi.h"
 #include "lua/luawork.h" // luawork::init, luawork::start
 #include "net.h" // net::init
 #include "cmd.h" // cmd::init, cmd::exec, cmd::start
@@ -17,6 +18,7 @@ int main(int argc, char* argv[])
 	// Initialization
 	con::init();
 	con::log("Initialization EBotPlatform V" + _version + "...");
+	eapi::init();
 	net::init();
 	vk::init();
 	luawork::init();
@@ -26,6 +28,7 @@ int main(int argc, char* argv[])
 	cmd::exec("config.cfg");
 	cmd::start();
 	vk::start();
+	eapi::start();
 	luawork::start();
 	longpoll::start(); // Main loop
 
