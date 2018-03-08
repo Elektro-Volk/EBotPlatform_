@@ -50,10 +50,7 @@ void luaModules::load()
 	vector<string> loaddata = fs::dirList("scripts/modules");
 	for (auto e : loaddata) {
 		string name = e;
-		name.erase( name.end() - 1 );
-		name.erase( name.end() - 1 );
-		name.erase( name.end() - 1 );
-		name.erase( name.end() - 1 );// TODO
+		name.erase( name.end() - 4, name.end());
 		list.push_back({ name, false });
 	}
 }
