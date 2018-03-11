@@ -9,7 +9,6 @@ namespace longpoll {
     string server;
     map<string, string> params;
     void getServer();
-    void onFailed(rapidjson::Document& data);
   public:
     LongPoll();
     void loop();

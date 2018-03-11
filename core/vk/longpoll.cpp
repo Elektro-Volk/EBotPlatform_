@@ -7,18 +7,30 @@
 
 longpoll::LongPoll* longpoll::lp;
 
+/**************************************
+	longpoll::start()
+	Creates a new LongPoll and starts it
+**************************************/
 void longpoll::start()
 {
 	longpoll::lp = new longpoll::LongPoll();
 	lp->loop();
 }
 
+/**************************************
+	longpoll::LongPoll::LongPoll()
+	Constructor LongPoll
+**************************************/
 longpoll::LongPoll::LongPoll()
 {
 	this->params = { { "version", "2" }, { "act", "a_check" }, { "wait", "25" } };
 	getServer();
 }
 
+/**************************************
+	longpoll::LongPoll::getServer()
+	Gets a longpoll server from VK
+**************************************/
 void longpoll::LongPoll::getServer()
 {
 	con::log("Getting longpoll server...");
@@ -29,40 +41,29 @@ void longpoll::LongPoll::getServer()
 	params["ts"] = to_string(data["ts"].GetInt());
 }
 
-void longpoll::LongPoll::onFailed(rapidjson::Document& data)
-{
-	int code = data["failed"].GetInt();
-	con::log("LongPoll failed: " + to_string(code));
-	switch(code){
-		case 1: params["ts"] = to_string(data["ts"].GetInt()); break;
-		case 2: getServer(); break;
-		case 3: getServer(); break;
-		case 4: break;
-	}
-}
-
+/**************************************
+	longpoll::LongPoll::loop()
+	Main loop
+**************************************/
 void longpoll::LongPoll::loop()
 {
 	con::log("LongPoll was successfully launched");
 	while (true) {
 		try {
 			rapidjson::Document data;
-			if (data.Parse(net::POST("https://" + server, params).c_str()).HasParseError())
-        throw new string("Json parse error");
-			if(data.HasMember("failed")) {
-				onFailed(data);
-				continue;
-			}
+			data.Parse(net::POST("https://" + server, params).c_str());
+
+			if(data.HasMember("failed")) throw data; // Failed
 			params["ts"] = to_string(data["ts"].GetInt());
+
 			rapidjson::Value &updates = data["updates"];
-			for (size_t i = 0; i < updates.Size(); i++) {
-				if(updates[i][0] == 4)
-					luawork::push(updates[i]);
-			}
+			for (int i = 0; i < updates.Size(); i++)
+				if(updates[i][0] == 4) luawork::push(updates[i]); // Messages only
 		}
-		catch (string *err) {
-			con::error(*err);
-			delete err;
+		catch (rapidjson::Document &err) { // Failed
+			con::log("LongPoll failed.");
+			if (err["failed"].GetInt() != 1) getServer();
+			else params["ts"] = to_string(err["ts"].GetInt());
 		}
 	}
 }
