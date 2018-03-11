@@ -15,22 +15,18 @@ void longpoll::start()
 
 longpoll::LongPoll::LongPoll()
 {
+	this->params = { { "version", "2" }, { "act", "a_check" }, { "wait", "25" } };
 	getServer();
 }
 
 void longpoll::LongPoll::getServer()
 {
 	con::log("Getting longpoll server...");
-	rapidjson::Value &data = vk::jSend("messages.getLongPollServer", {{ "lp_version", "2" }})["response"];
-
+	rapidjson::Document document = vk::jSend("messages.getLongPollServer", {{ "lp_version", "2" }});
+	rapidjson::Value &data = document["response"];
 	server = data["server"].GetString();
-	params = {
-		{ "ts", to_string(data["ts"].GetInt()) },
-		{ "key", data["key"].GetString() },
-		{ "version", "2" },
-		{ "act", "a_check" },
-		{ "wait", "25" }
-	};
+	params["key"] = data["key"].GetString();
+	params["ts"] = to_string(data["ts"].GetInt());
 }
 
 void longpoll::LongPoll::onFailed(rapidjson::Document& data)

@@ -41,6 +41,7 @@ int lapi::funcs::getId(lua_State *L)
 	}
 
 	rapidjson::Value &result = vk::jSend("utils.resolveScreenName", {{"screen_name", url}})["response"];
+  if(!result.IsObject()) return lapi::funcs::getId(L);
 	if (result.HasMember("object_id")) lua_pushinteger(L, result["object_id"].GetInt()); else lua_pushnil(L);
 	return 1;
 }

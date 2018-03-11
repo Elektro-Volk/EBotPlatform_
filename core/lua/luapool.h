@@ -24,8 +24,13 @@ namespace luapool {
 
   extern char nPools;
   extern std::vector<pool*> pools;
+  // Settings
+  extern int poolsCount;
+  extern int poolsSleep;
 
+  void init();
   void start();
   void close();
   void add(rapidjson::Value &msg);
+  string c_pools(vector<string> _args);
 }

@@ -9,7 +9,8 @@ string eapi::url = "http://ebp.elektro-volk.ru/api/";
 
 void eapi::init()
 {
-  cvars::add("eapi_key", &key);
+  //cvars::add("eapi_key", &key);
+  //cvars::add("eapi_key", "u");
 }
 
 void eapi::start()

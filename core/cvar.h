@@ -1,25 +1,20 @@
 #pragma once
 #include "common.h"
-#include "nextlist.hpp"
+#include <map>
 #include "lua/luai.h"
 
 namespace cvars {
   class Cvar {
-  private:
-    string value;
   public:
+    string value;
     string name;
-    int* intCallback = nullptr;
-    float* floatCallback = nullptr;
     string* stringCallback = nullptr;
-    bool* boolCallback = nullptr;
-    void(*funcCallback)(Cvar* cvar, string new_value) = nullptr;
 
     Cvar(string name, string value);
     void setValue(string new_value);
     string getValue();
   };
-  extern Nextlist<string, Cvar*> cvars;
+  extern map<string, Cvar*> cvars;
 
   Cvar *add(string name, string* value);
   Cvar *add(string name, string value);

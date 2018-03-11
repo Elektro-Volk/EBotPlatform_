@@ -1,6 +1,7 @@
 #include "cvar.h"
+#include <map>
 
-Nextlist<string, cvars::Cvar*> cvars::cvars;
+map<string, cvars::Cvar*> cvars::cvars;
 
 cvars::Cvar::Cvar(string name, string value)
 {
@@ -23,7 +24,7 @@ string cvars::Cvar::getValue()
 cvars::Cvar *cvars::add(string name, string value)
 {
   Cvar *cvar = new Cvar(name, value);
-  cvars.push(name, cvar);
+  cvars.insert ( pair<string,cvars::Cvar*>(name, cvar));
   return cvar;
 }
 
@@ -31,7 +32,7 @@ cvars::Cvar *cvars::add(string name, string* value)
 {
   Cvar *cvar = new Cvar(name, *value);
   cvar->stringCallback = value;
-  cvars.push(name, cvar);
+  cvars.insert ( pair<string,cvars::Cvar*>(name, cvar));
   return cvar;
 }
 
@@ -42,12 +43,12 @@ cvars::Cvar *cvars::get(string name)
 
 bool cvars::exists(string name)
 {
-  return cvars.exists(name);
+  return cvars.find(name) != cvars.end();
 }
 
 void cvars::remove(cvars::Cvar *cvar)
 {
-  cvars.pop(cvar->name);
+  //cvars.pop(cvar->name);
 }
 
 int cvars::lua::get(lua_State *L)

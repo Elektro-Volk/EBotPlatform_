@@ -4,7 +4,7 @@
 #include "../console.h"
 
 string vk::token = "-";
-string vk::version = "5.65";
+string vk::version = "5.73";
 
 void vk::init()
 {

@@ -14,11 +14,11 @@ int startTime = time(0);
 
 int main(int argc, char* argv[])
 {
-	setlocale(LC_ALL, "");
+	//setlocale(LC_ALL, "");
 	// Initialization
 	con::init();
 	con::log("Initialization EBotPlatform V" + _version + "...");
-	eapi::init();
+	//eapi::init();
 	net::init();
 	vk::init();
 	luawork::init();
@@ -28,7 +28,7 @@ int main(int argc, char* argv[])
 	cmd::exec("config.cfg");
 	cmd::start();
 	vk::start();
-	eapi::start();
+	//eapi::start();
 	luawork::start();
 	longpoll::start(); // Main loop
 
