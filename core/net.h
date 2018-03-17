@@ -25,7 +25,6 @@ namespace net {
   };
 
   void init();
-  size_t _curlWriteCallback(char *ptr, size_t size, size_t nmemb, void *data);
   char* makeFields(map<string, string> &fields);
   string GET(string url);
   string POST(string url, const char* data);

@@ -11,7 +11,7 @@
 char luapool::nPools;
 std::vector<luapool::pool*> luapool::pools;
 
-int luapool::poolsCount = 2;
+int luapool::poolsCount = 3;
 int luapool::poolsSleep = 10;
 
 void luapool::init()
@@ -51,27 +51,20 @@ void luapool::close()
 }
 
 bool pushValue(lua_State *L, const rapidjson::Value &value);
-bool checkMessage(lua_State *state, rapidjson::Value &msg)
-{
-  lua_getglobal(state, "CheckMessage");
-  pushValue(state, msg);
-  luawork::safeCall(state, 1, 1);
-  return !lua_isnil(state, -1);
-}
-
 void luapool::add(rapidjson::Value &msg)
 {
-    if(!checkMessage(luawork::state, msg)) return;
-    // find free pool and add msg then
-    pool *freePool = nullptr;
-    while(!freePool){
-      for(int i = 0; i < pools.size(); i++) {
-        if(!pools[i]->isFree()) continue;
-        freePool = pools[i];
-        break;
-      }
+  // find free pool and add msg then
+  pool *freePool = nullptr;
+  while(!freePool){
+    for(int i = 0; i < pools.size(); i++) {
+      if(!pools[i]->isFree()) continue;
+      freePool = pools[i];
+      break;
     }
-    freePool->add();
+  }
+
+  pushValue(luawork::state, msg);
+  freePool->add();
 }
 
 
@@ -108,7 +101,7 @@ void luapool::pool::add()
 {
   this->free = false;
   lua_settop(L, 0);
-  lua_xmove (luawork::state, L, 2);
+  lua_xmove (luawork::state, L, 1);
   this->have = true;
 }
 
@@ -117,9 +110,15 @@ void luapool::pool::loop()
   auto ms = std::chrono::milliseconds(poolsSleep);
   while (!toremove) {
 		if (this->have && !this->free) {
-      lua_getglobal(L, "NewMessage");
-      lua_pushvalue (L, 2);
-      luawork::safeCall(L, 1);
+      lua_getglobal(L, "CheckMessage");
+      lua_pushvalue (L, 1);
+      luawork::safeCall(L, 1, 1);
+      if(!lua_isnil(L, -1)) {
+        lua_getglobal(L, "NewMessage");
+        lua_pushvalue (L, 2);
+        luawork::safeCall(L, 1);
+      }
+      lua_settop(L, 0);
     }
 
 		this->free = true;
