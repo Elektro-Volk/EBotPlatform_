@@ -187,12 +187,14 @@ int net::lua::send(lua_State* L)
       }
       request->mimes = mimes;
 
-      lua_pushstring(L, request->send().c_str());
+      auto res = request->send();
+      lua_pushlstring(L, res.c_str(), res.size());
       delete request;
       delete fields;
     }
     else {
-      lua_pushstring(L, ::net::POST(lua_tostring(L, 1), lua_tostring(L, 2)).c_str());
+      auto res = ::net::POST(lua_tostring(L, 1), lua_tostring(L, 2));
+      lua_pushlstring(L, res.c_str(), res.size());
     }
   }
   return 1;
