@@ -13,6 +13,7 @@ namespace luaModules {
 
 		string c_mlist(vector<string> cmd_args);
 		void loadModules(lua_State *L);
+		void clearModules();
 		void startModules(lua_State *L);
 		void load();
 	};

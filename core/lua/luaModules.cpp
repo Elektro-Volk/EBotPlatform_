@@ -31,6 +31,11 @@ void luaModules::loadModules(lua_State *L)
 	}
 }
 
+void luaModules::clearModules()
+{
+	list.clear();
+}
+
 void luaModules::startModules(lua_State *L)
 {
   for (auto it = list.begin(); it != list.end(); ++it)
