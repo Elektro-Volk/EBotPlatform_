@@ -5,15 +5,18 @@
 
 string vk::token = "-";
 string vk::version = "5.73";
+string vk::groupmode = "0";
 
 void vk::init()
 {
   cvars::add("vk_token", &token);
   cvars::add("vk_version", &version);
+  cvars::add("vk_group", &groupmode);
 }
 
 void vk::start()
 {
+  if (groupmode == "1") return;
   auto data = vk::jSend("stats.trackVisitor");
 	if (data.HasMember("error")) {
 		con::error("Wrong vk_token");

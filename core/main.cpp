@@ -9,11 +9,12 @@
 #include "cmd.h" // cmd::init, cmd::exec, cmd::start
 
 string bot_path = "bot";
-const string _version = "0.6.2.2";
+const string _version = "0.6.3";
 int startTime = time(0);
 
 int main(int argc, char* argv[])
 {
+	if(argc == 2) bot_path = argv[1]; // Custom bot path
 	//setlocale(LC_ALL, "");
 	// Initialization
 	con::init();

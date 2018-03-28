@@ -16,6 +16,7 @@ namespace vk {
 
   extern string token;
   extern string version;
+  extern string groupmode;
 
   void init();
   void start();
