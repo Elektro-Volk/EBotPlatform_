@@ -1,6 +1,6 @@
 CC=g++ -g
 CFLAGS=-std=c++11 -c
-LDFLAGS=-Llua -llua -lcurl -DLUA_USER_H=\"../lua/lua_user.h\" -ldl -lmysqlclient -lpthread
+LDFLAGS=-L./lua -llua -lcurl -DLUA_USER_H=\"lua/lua_user.h\" -ldl -lmysqlclient -lpthread
 INCLUDES=-L/usr/local/lib -Irjson/include/
 SOURCES=	\
 	core/main.cpp \

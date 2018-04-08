@@ -8,19 +8,14 @@
 
 namespace luapool {
   class pool {
-    char id;
-    bool have;
+    char id[1];
+    bool busy;
     bool enabled;
     lua_State* L;
     void loop();
   public:
     pool();
-    ~pool()
-  	{
-  		enabled = false;
-  		cv.notify_one();
-  		thread.join();
-  	}
+    ~pool();
     void start();
     bool isFree();
     void sRemove();
@@ -28,7 +23,7 @@ namespace luapool {
   private:
     std::condition_variable		cv;
     std::mutex				mutex;
-    std::thread				thread;	
+    std::thread				thread;
   };
 
   extern char nPools;

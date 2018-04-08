@@ -16,19 +16,19 @@
 #include <vector>
 #include "console.h"
 
-/* CURL CROSSTHREAD */
-CURLSH* share;
-LSECT net_lock;
+thread::id net::main_thread_id  = std::this_thread::get_id();
+Nextlist<thread::id, net::CurlObject*> net::curls;
 
-void CURLlock(CURL *handle, curl_lock_data data, curl_lock_access access,void *useptr ){
-  lock_lock(net_lock);
+void net::init()
+{
+  curl_global_init(CURL_GLOBAL_ALL);
+  curls.push(main_thread_id, new CurlObject());
 }
 
-/* unlock callback */
-void CURLunlock(CURL *handle, curl_lock_data data, void *useptr ){
-lock_unlock(net_lock);
+net::CurlObject *net::getCurlObject()
+{
+  return curls.exists(this_thread::get_id()) ? curls[this_thread::get_id()] : curls[main_thread_id];
 }
-
 
 net::Request::Request(string url)
 {
@@ -44,9 +44,10 @@ string net::Request::send()
 {
   string buffer;
 
-  curl_global_init(CURL_GLOBAL_ALL); // TOMOVE
-  CURL *curl_handle = curl_easy_init();
-  curl_easy_setopt(curl_handle, CURLOPT_SHARE, share);
+  auto co = net::getCurlObject();
+  co->lock();
+  CURL *curl_handle = co->handle;
+  //curl_easy_setopt(curl_handle, CURLOPT_TCP_FASTOPEN, 1);
   curl_easy_setopt(curl_handle, CURLOPT_URL, this->url.c_str());
   curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, net::_curlWriteCallback);
   curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, (void *)&buffer);
@@ -73,24 +74,18 @@ string net::Request::send()
 
   CURLcode res = curl_easy_perform(curl_handle);
   if(res != CURLE_OK) {
-    curl_easy_cleanup(curl_handle);
+    co->flush();
+    co->unlock();
     throw new string("curl_easy_perform(" + this->url + ") failed: " + string(curl_easy_strerror(res)));
   }
   else {
-    curl_easy_cleanup(curl_handle);
+    co->flush();
+    co->unlock();
     return buffer;
   }
 }
 
-void net::init()
-{
-  share = curl_share_init();
-  net_lock = lock_new();
 
-  curl_share_setopt( share, CURLSHOPT_LOCKFUNC, CURLlock);
-  curl_share_setopt( share, CURLSHOPT_UNLOCKFUNC, CURLunlock);
-  curl_share_setopt(share,CURLSHOPT_SHARE,CURL_LOCK_DATA_DNS);
-}
 
 size_t net::_curlWriteCallback(char *ptr, size_t size, size_t nmemb, void *data)
 {

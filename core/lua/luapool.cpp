@@ -6,7 +6,8 @@
 #include "../cvar.h"
 #include "../console.h"
 #include "../cmd.h"
-
+#include "../net.h"
+//#include "../../lua/lua_user.h" //lua_lock, lua_unlock
 
 char luapool::nPools;
 std::vector<luapool::pool*> luapool::pools;
@@ -47,16 +48,13 @@ void luapool::close()
   con::log("Pools closed.");
 }
 
-bool pushValue(lua_State *L, const rapidjson::Value &value);
 void luapool::add(rapidjson::Value &msg)
 {
   // find free pool and add msg then
-  auto ms = std::chrono::milliseconds(1);
   pool *freePool = nullptr;
   while(!freePool){
     for(int i = 0; i < pools.size(); i++) {
-      std::this_thread::sleep_for(ms);
-      if(!pools[i]->isFree()) continue;
+      if(pools[i]->isBusy()) continue;
       freePool = pools[i];
       break;
     }
@@ -67,26 +65,38 @@ void luapool::add(rapidjson::Value &msg)
 
 // Class
 luapool::pool::pool()
-:enabled(true), have(false), thread(&luapool::pool::loop, this)
+:enabled(true), busy(false), thread(&luapool::pool::loop, this)
 {
-  // params
-  this->id = nPools++;
-  // Lua thread
-	//lua_lock(G_L);
-	this->L = lua_newthread(luawork::state);
-	lua_setfield(luawork::state, LUA_REGISTRYINDEX, &this->id);
-	//lua_unlock(G_L);
+  net::curls.push(thread.get_id(), new net::CurlObject());
+
+  id[0] = nPools++;
+	L = lua_newthread(luawork::state);
+	lua_setfield(luawork::state, LUA_REGISTRYINDEX, id);
 }
 
-bool luapool::pool::isFree()
+luapool::pool::~pool()
 {
-  return !this->have;
+  enabled = false;
+  delete net::curls[thread.get_id()];
+  net::curls.pop(thread.get_id());
+  cv.notify_one();
+  thread.join();
 }
 
+bool luapool::pool::isBusy()
+{
+  return busy;
+}
+
+bool pushValue(lua_State *L, const rapidjson::Value &value);
 void luapool::pool::add(rapidjson::Value &msg)
 {
   std::unique_lock<std::mutex> locker(mutex);
+  lua_unlock(L);
+  lua_settop(L, 0);
+  lua_getglobal(L, "NewMessage");
   pushValue(L, msg);
+  lua_lock(L);
   this->have = true;
   cv.notify_one();
 }
@@ -95,16 +105,13 @@ void luapool::pool::loop()
 {
   while (enabled) {
     std::unique_lock<std::mutex> locker(mutex);
-		cv.wait(locker, [&](){ return have || !enabled; });
+		cv.wait(locker, [&](){ return busy || !enabled; });
 
-		if (!this->have) continue;
-    this->have = false;
+		if (!busy) continue;
+    busy = false;
 
-    locker.unlock();
-    lua_getglobal(L, "NewMessage");
-    lua_pushvalue (L, 1);
+    lua_unlock(L);
     luawork::safeCall(L, 1);
-    lua_settop(L, 0);
-    locker.lock();
+    lua_lock(L);
 	}
 }

@@ -1,12 +1,49 @@
 #pragma once
 #include "common.h"
 #include <map>
+#include <curl/curl.h>
 #include "lua/luai.h"
+#include "nextlist.hpp"
+#include <thread>
 
 namespace net {
   struct MemBuf {
     char *memory;
     size_t size;
+  };
+
+  class CurlObject {
+  private:
+      LSECT _lock;
+  public:
+      CURL *handle;
+
+      CurlObject()
+      {
+        _lock = lock_new();
+        handle = curl_easy_init();
+      }
+
+      ~CurlObject()
+      {
+        curl_easy_cleanup(handle);
+        lock_free(_lock);
+      }
+
+      void lock()
+      {
+          lock_lock(_lock);
+      }
+
+      void unlock()
+      {
+          lock_unlock(_lock);
+      }
+
+      void flush()
+      {
+          curl_easy_reset(handle);
+      }
   };
 
   class Request {
@@ -24,7 +61,11 @@ namespace net {
     string send();
   };
 
+  extern std::thread::id main_thread_id;
+  extern Nextlist<thread::id, net::CurlObject*> curls;
+
   void init();
+  CurlObject *getCurlObject();
   size_t _curlWriteCallback(char *ptr, size_t size, size_t nmemb, void *data);
   char* makeFields(map<string, string> &fields);
   string GET(string url);

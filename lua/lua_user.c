@@ -22,7 +22,7 @@ inline LSECT LockNew() {
 	return s;
 }
 
-#include "lua.h"
+
 #include "lua_user.h"
 
 typedef struct {
@@ -59,7 +59,7 @@ void lock_GC(lua_State * L) /* Not called by Lua. */
 	}
 }
 
-  void lua_lock(lua_State * L)
+  LUA_API void lua_lock(lua_State * L)
   {
 	  for (GS* gs = gss; gs->next != NULL; gs = gs->next) {
 		  if (gs->L == L) {
@@ -69,7 +69,7 @@ void lock_GC(lua_State * L) /* Not called by Lua. */
 	  }
   }
 
-  void lua_unlock(lua_State * L)
+LUA_API  void lua_unlock(lua_State * L)
   {
 	  for (GS* gs = gss; gs->next != NULL; gs = gs->next) {
 		  if (gs->L == L) {
