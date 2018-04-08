@@ -7,18 +7,17 @@
 #include "luai.h"
 
 namespace luapool {
-  class pool {
+  class Worker {
     char id[1];
     bool busy;
     bool enabled;
     lua_State* L;
     void loop();
   public:
-    pool();
-    ~pool();
+    Worker();
+    ~Worker();
     void start();
-    bool isFree();
-    void sRemove();
+    bool isBusy();
     void add(rapidjson::Value &msg);
   private:
     std::condition_variable		cv;
@@ -26,15 +25,14 @@ namespace luapool {
     std::thread				thread;
   };
 
-  extern char nPools;
-  extern std::vector<pool*> pools;
+  extern char nWorkers;
+  extern std::vector<Worker*> workers;
   // Settings
-  extern int poolsCount;
-  extern int poolsSleep;
+  extern int workersCount;
 
   void init();
   void start();
   void close();
   void add(rapidjson::Value &msg);
-  string c_pools(vector<string> _args);
+  string c_pool(vector<string> _args);
 }

@@ -7,74 +7,71 @@
 #include "../console.h"
 #include "../cmd.h"
 #include "../net.h"
-//#include "../../lua/lua_user.h" //lua_lock, lua_unlock
 
-char luapool::nPools;
-std::vector<luapool::pool*> luapool::pools;
+char luapool::nWorkers;
+std::vector<luapool::Worker*> luapool::workers;
 
-int luapool::poolsCount = 2;
-int luapool::poolsSleep = 10;
+int luapool::workersCount = 2;
 
 void luapool::init()
 {
   //cvars::add("pl_count", "2");//->intCallback = &luapool::poolsCount;
  // cvars::add("pl_sleep", "10");//->intCallback = &luapool::poolsSleep;
   //cvars::add("a", "adad");
-  cmd::add("pools", luapool::c_pools, "Lua pools list");
+  cmd::add("pool", luapool::c_pool, "Lua pool list");
 }
 
 void luapool::start()
 {
-  for(int i = 0; i < poolsCount; i++)
-    pools.push_back(new pool());
+  nWorkers = 0;
+  for(int i = 0; i < workersCount; i++)
+    workers.push_back(new Worker());
 }
 
-string luapool::c_pools(vector<string> _args)
+string luapool::c_pool(vector<string> _args)
 {
-  std::string ret = "\nLua pools:";
-	for (int i = 0; i < luapool::pools.size(); i++)
+  string ret = "\nLua pools:";
+	for (int i = 0; i < workers.size(); i++)
 	{
-		ret += "\n" + to_string(i) + " - " + (luapool::pools[i]->isFree() ? "free" : "busy");
+		ret += "\n" + to_string(i) + " - "
+    + (workers[i]->isBusy() ? "busy" : "free");
 	}
 	return ret;
 }
 
 void luapool::close()
 {
-  con::log("Closing pools...");
-  for(int i=0; i<pools.size(); i++)
-    delete pools[i];
-  pools.clear();
-  con::log("Pools closed.");
+  for(int i = 0; i < workers.size(); i++)
+    delete workers[i];
+  workers.clear();
 }
 
 void luapool::add(rapidjson::Value &msg)
 {
   // find free pool and add msg then
-  pool *freePool = nullptr;
-  while(!freePool){
-    for(int i = 0; i < pools.size(); i++) {
-      if(pools[i]->isBusy()) continue;
-      freePool = pools[i];
+  Worker *freeWorker = nullptr;
+  while(!freeWorker){
+    for(int i = 0; i < workers.size(); i++) {
+      if(workers[i]->isBusy()) continue;
+      freeWorker = workers[i];
       break;
     }
   }
-  freePool->add(msg);
+  freeWorker->add(msg);
 }
 
-
-// Class
-luapool::pool::pool()
-:enabled(true), busy(false), thread(&luapool::pool::loop, this)
+/***** Worker class *****/
+luapool::Worker::Worker()
+:enabled(true), busy(false), thread(&luapool::Worker::loop, this)
 {
   net::curls.push(thread.get_id(), new net::CurlObject());
 
-  id[0] = nPools++;
+  id[0] = nWorkers++;
 	L = lua_newthread(luawork::state);
 	lua_setfield(luawork::state, LUA_REGISTRYINDEX, id);
 }
 
-luapool::pool::~pool()
+luapool::Worker::~Worker()
 {
   enabled = false;
   delete net::curls[thread.get_id()];
@@ -83,13 +80,13 @@ luapool::pool::~pool()
   thread.join();
 }
 
-bool luapool::pool::isBusy()
+bool luapool::Worker::isBusy()
 {
   return busy;
 }
 
 bool pushValue(lua_State *L, const rapidjson::Value &value);
-void luapool::pool::add(rapidjson::Value &msg)
+void luapool::Worker::add(rapidjson::Value &msg)
 {
   std::unique_lock<std::mutex> locker(mutex);
   lua_unlock(L);
@@ -97,11 +94,11 @@ void luapool::pool::add(rapidjson::Value &msg)
   lua_getglobal(L, "NewMessage");
   pushValue(L, msg);
   lua_lock(L);
-  this->have = true;
+  busy = true;
   cv.notify_one();
 }
 
-void luapool::pool::loop()
+void luapool::Worker::loop()
 {
   while (enabled) {
     std::unique_lock<std::mutex> locker(mutex);
