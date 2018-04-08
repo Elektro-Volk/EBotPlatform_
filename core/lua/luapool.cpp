@@ -11,7 +11,7 @@
 char luapool::nPools;
 std::vector<luapool::pool*> luapool::pools;
 
-int luapool::poolsCount = 3;
+int luapool::poolsCount = 2;
 int luapool::poolsSleep = 10;
 
 void luapool::init()
@@ -41,11 +41,8 @@ string luapool::c_pools(vector<string> _args)
 void luapool::close()
 {
   con::log("Closing pools...");
-  for(int i=pools.size(); i<pools.size(); i++) {
-    pools[i]->sRemove();
-    while(true) if(!pools[i]->active) break;
+  for(int i=0; i<pools.size(); i++)
     delete pools[i];
-  }
   pools.clear();
   con::log("Pools closed.");
 }
@@ -54,76 +51,60 @@ bool pushValue(lua_State *L, const rapidjson::Value &value);
 void luapool::add(rapidjson::Value &msg)
 {
   // find free pool and add msg then
+  auto ms = std::chrono::milliseconds(1);
   pool *freePool = nullptr;
   while(!freePool){
     for(int i = 0; i < pools.size(); i++) {
+      std::this_thread::sleep_for(ms);
       if(!pools[i]->isFree()) continue;
       freePool = pools[i];
       break;
     }
   }
-
-  pushValue(luawork::state, msg);
-  freePool->add();
+  freePool->add(msg);
 }
 
 
 // Class
 luapool::pool::pool()
+:enabled(true), have(false), thread(&luapool::pool::loop, this)
 {
   // params
   this->id = nPools++;
-  this->free = true;
-	this->toremove = false;
-  this->have = false;
-  this->active = true;
   // Lua thread
 	//lua_lock(G_L);
 	this->L = lua_newthread(luawork::state);
 	lua_setfield(luawork::state, LUA_REGISTRYINDEX, &this->id);
 	//lua_unlock(G_L);
-  // C thread
-	std::thread t(&luapool::pool::loop, this);
-	t.detach();
 }
 
 bool luapool::pool::isFree()
 {
-  return this->free;
+  return !this->have;
 }
 
-void luapool::pool::sRemove()
+void luapool::pool::add(rapidjson::Value &msg)
 {
-  toremove = true;
-}
-
-void luapool::pool::add()
-{
-  this->free = false;
-  lua_settop(L, 0);
-  lua_xmove (luawork::state, L, 1);
+  std::unique_lock<std::mutex> locker(mutex);
+  pushValue(L, msg);
   this->have = true;
+  cv.notify_one();
 }
 
 void luapool::pool::loop()
 {
-  auto ms = std::chrono::milliseconds(poolsSleep);
-  while (!toremove) {
-		if (this->have && !this->free) {
-      lua_getglobal(L, "CheckMessage");
-      lua_pushvalue (L, 1);
-      luawork::safeCall(L, 1, 1);
-      if(!lua_isnil(L, -1)) {
-        lua_getglobal(L, "NewMessage");
-        lua_pushvalue (L, 2);
-        luawork::safeCall(L, 1);
-      }
-      lua_settop(L, 0);
-    }
+  while (enabled) {
+    std::unique_lock<std::mutex> locker(mutex);
+		cv.wait(locker, [&](){ return have || !enabled; });
 
-		this->free = true;
+		if (!this->have) continue;
     this->have = false;
-		std::this_thread::sleep_for(ms);
+
+    locker.unlock();
+    lua_getglobal(L, "NewMessage");
+    lua_pushvalue (L, 1);
+    luawork::safeCall(L, 1);
+    lua_settop(L, 0);
+    locker.lock();
 	}
-  active = false;
 }

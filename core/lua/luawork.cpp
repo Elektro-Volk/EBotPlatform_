@@ -48,9 +48,7 @@ void luawork::start()
 
 void luawork::push(rapidjson::Value &msg)
 {
-  if(!luawork::isWorking) return;
-  luapool::add(msg);
-  lua_settop(luawork::state, 0);
+  if(luawork::isWorking) luapool::add(msg);
 }
 
 bool luawork::safeCall(lua_State* L, int argnum, int retnum)

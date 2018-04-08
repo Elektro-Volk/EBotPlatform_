@@ -6,12 +6,14 @@
 string vk::token = "-";
 string vk::version = "5.73";
 string vk::groupmode = "0";
+string vk::groupid = "0";
 
 void vk::init()
 {
   cvars::add("vk_token", &token);
   cvars::add("vk_version", &version);
   cvars::add("vk_group", &groupmode);
+  cvars::add("vk_groupid", &groupid);
 }
 
 void vk::start()
@@ -29,8 +31,7 @@ string vk::send(string method, map<string, string> params)
 {
   //	if (method == "messages.send")// Send stats
   //		net::send("http://ebp.elektro-volk.ru/api/addstat.php", { {"key", cvar::get ("eapi_key")} });
-
-  params["access_token"] = token;
+  if(params.find("access_token") == params.end()) params["access_token"] = token;
   params["v"] = version;
   return net::POST("https://api.vk.com/method/" + method, params);
 }

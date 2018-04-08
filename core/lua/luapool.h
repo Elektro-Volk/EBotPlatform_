@@ -1,5 +1,7 @@
 #pragma once
 #include <thread>
+#include <mutex>
+#include <condition_variable>
 #include <vector>
 #include "rapidjson/document.h"
 #include "luai.h"
@@ -7,19 +9,26 @@
 namespace luapool {
   class pool {
     char id;
-    bool free;
     bool have;
-    bool toremove;
+    bool enabled;
     lua_State* L;
     void loop();
   public:
-    bool active;
-
     pool();
+    ~pool()
+  	{
+  		enabled = false;
+  		cv.notify_one();
+  		thread.join();
+  	}
     void start();
     bool isFree();
     void sRemove();
-    void add();
+    void add(rapidjson::Value &msg);
+  private:
+    std::condition_variable		cv;
+    std::mutex				mutex;
+    std::thread				thread;	
   };
 
   extern char nPools;

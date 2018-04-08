@@ -34,7 +34,11 @@ longpoll::LongPoll::LongPoll()
 void longpoll::LongPoll::getServer()
 {
 	con::log("Getting longpoll server...");
-	rapidjson::Document document = vk::jSend("messages.getLongPollServer", {{ "lp_version", "2" }});
+	rapidjson::Document document;
+	if (vk::groupmode == "1")
+		document = vk::jSend("groups.getLongPollServer", {{ "group_id", vk::groupid }});
+	else
+		document = vk::jSend("messages.getLongPollServer", {{ "lp_version", "3" }});
 	rapidjson::Value &data = document["response"];
 	server = data["server"].GetString();
 	params["key"] = data["key"].GetString();
@@ -47,21 +51,31 @@ void longpoll::LongPoll::getServer()
 **************************************/
 void longpoll::LongPoll::loop()
 {
+	bool grmode = vk::groupmode == "1";
+
 	con::log("LongPoll was successfully launched");
 	while (true) {
 		try {
 			rapidjson::Document data;
-			data.Parse(net::POST("https://" + server, params).c_str());
-
+			data.Parse(net::POST((grmode ? "" : "https://") + server, params).c_str());
+			if(!data.IsObject()) continue; // Bad response
 			if(data.HasMember("failed")) throw data; // Failed
-			params["ts"] = to_string(data["ts"].GetInt());
+
+			params["ts"] = grmode ? data["ts"].GetString() : to_string(data["ts"].GetInt());
 
 			rapidjson::Value &updates = data["updates"];
-			for (int i = 0; i < updates.Size(); i++)
-				if(updates[i][0] == 4) luawork::push(updates[i]); // Messages only
+
+			for (int i = 0; i < updates.Size(); i++) {
+					if (grmode){
+						if(updates[i]["type"] == "message_new") luawork::push(updates[i]["object"]); // Messages only
+					}
+					else {
+						if(updates[i][0] == 4) luawork::push(updates[i]); // Messages only
+					}
+			}
 		}
 		catch (rapidjson::Document &err) { // Failed
-			con::log("LongPoll failed.");
+			con::log("LongPoll failed: " + to_string(err["failed"].GetInt()));
 			if (err["failed"].GetInt() != 1) getServer();
 			else params["ts"] = to_string(err["ts"].GetInt());
 		}
