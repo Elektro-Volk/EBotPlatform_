@@ -9,6 +9,8 @@ namespace longpoll {
     string server;
     map<string, string> params;
     void getServer();
+    void loopUser();
+    void loopGroup();
   public:
     LongPoll();
     void loop();
