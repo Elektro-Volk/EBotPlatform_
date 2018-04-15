@@ -30,7 +30,7 @@ void luapool::start()
 
 string luapool::c_pool(vector<string> _args)
 {
-  string ret = "\nLua pools:";
+  string ret = "\nLua pool:";
 	for (int i = 0; i < workers.size(); i++)
 	{
 		ret += "\n" + to_string(i) + " - "
@@ -89,12 +89,13 @@ bool pushValue(lua_State *L, const rapidjson::Value &value);
 void luapool::Worker::add(rapidjson::Value &msg)
 {
   std::unique_lock<std::mutex> locker(mutex);
+  busy = true;
+
   lua_unlock(L);
   lua_settop(L, 0);
   lua_getglobal(L, "NewMessage");
   pushValue(L, msg);
   lua_lock(L);
-  busy = true;
   cv.notify_one();
 }
 
@@ -105,10 +106,9 @@ void luapool::Worker::loop()
 		cv.wait(locker, [&](){ return busy || !enabled; });
 
 		if (!busy) continue;
-    busy = false;
-
     lua_unlock(L);
     luawork::safeCall(L, 1);
     lua_lock(L);
+    busy = false;
 	}
 }
