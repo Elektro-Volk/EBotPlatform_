@@ -16,6 +16,7 @@ namespace net {
   private:
       LSECT _lock;
   public:
+      char* name;
       CURL *handle;
 
       CurlObject()

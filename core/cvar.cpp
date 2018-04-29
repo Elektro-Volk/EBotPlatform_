@@ -16,9 +16,9 @@ void cvars::Cvar::setValue(string new_value)
     *stringCallback = new_value;
 }
 
-string cvars::Cvar::getValue()
+bool cvars::Cvar::getBool()
 {
-  return value;
+  return value == "1";
 }
 
 cvars::Cvar *cvars::add(string name, string value)
@@ -53,7 +53,7 @@ void cvars::remove(cvars::Cvar *cvar)
 
 int cvars::lua::get(lua_State *L)
 {
-  lua_pushstring(L, cvars::get(luaL_checkstring(L, 1))->getValue().c_str());
+  lua_pushstring(L, cvars::get(luaL_checkstring(L, 1))->value.c_str());
   return 1;
 }
 

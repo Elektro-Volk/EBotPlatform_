@@ -11,7 +11,7 @@ int lapi::funcs::randtable(lua_State *L)
   lua_settop(L, 1);
   luaL_checktype(L, 1, LUA_TTABLE);
   lua_len(L,1);
-  int len = lua_tointeger(L,-1);
+  int len = lua_tointeger(L,-1) - 1;
   lua_pushinteger(L,1+rand()%len);
   lua_rawget(L,1);
   return 1;
@@ -41,7 +41,7 @@ int lapi::funcs::getId(lua_State *L)
 	}
 
 	rapidjson::Value &result = vk::jSend("utils.resolveScreenName", {{"screen_name", url}})["response"];
-  if(!result.IsObject()) return lapi::funcs::getId(L);
+  if(!result.IsObject()) return 0;
 	if (result.HasMember("object_id")) lua_pushinteger(L, result["object_id"].GetInt()); else lua_pushnil(L);
 	return 1;
 }
@@ -68,7 +68,8 @@ int lapi::funcs::connect(lua_State *L)
   const char *path = lua_tostring(L, 1);
 	lua_getglobal(L, "require");
 	lua_pushfstring(L, "%s/%s", bot_path.c_str(), path);
-	lua_pcall(L, 1, -1, 0);
+  if(lua_pcall(L, 1, -1, 0))
+    luaL_error(L, lua_tostring(L, -1));
 	return 1;
 }
 
@@ -86,6 +87,11 @@ int lapi::funcs::getPeer(lua_State *L)
 	lua_getfield(L, -1, "chat_id");
 	if (lua_isnil(L, -1)) {
 		lua_getfield(L, -2, "user_id");
+    if (lua_isnil(L, -1)) { // LongPoll message
+      lua_rawgeti(L, -3, 4);
+      lua_pushstring(L, to_string(lua_tointeger(L, -1)).c_str());
+  		lua_remove(L, -2);
+    } else
 		lua_pushstring(L, to_string(lua_tointeger(L, -1)).c_str());
 		lua_remove(L, -2);
 	}
@@ -114,6 +120,22 @@ int lapi::funcs::resp(lua_State *L)
 	return vk::lua::jSend(L);
 }
 
+int lapi::funcs::isGroup(lua_State *L)
+{
+  lua_pushboolean(L, vk::groupmode->getBool());
+  return 1;
+}
+
+bool pushValue(lua_State *L, const rapidjson::Value &value);
+int lapi::funcs::getmsg(lua_State *L)
+{
+  std::string id = to_string(luaL_checknumber(L, 1));
+
+	rapidjson::Document result = vk::jSend("messages.getById", {{"message_ids", id}});
+  if(!result.IsObject() || !result.HasMember("response")) return 0;
+	pushValue(L, result["response"]["items"][0]);
+	return 1;
+}
 
 // bool string.starts(str, pref)
 int lapi::funcs::str::starts(lua_State *L)

@@ -110,9 +110,13 @@ int mysqlwork::execute(lua_State* L)
     for (int i = 0; i < mysql_num_fields(res); i++) {
       lua_pushstring(L, fields[i].name);
 			switch(fields[i].type) {
-				case MYSQL_TYPE_FLOAT: lua_pushnumber(L, stoi(row[i])); break;
-				case MYSQL_TYPE_DOUBLE: lua_pushnumber(L, stoi(row[i])); break;
-				case MYSQL_TYPE_LONG: lua_pushinteger(L, stoi(row[i])); break;
+                    case MYSQL_TYPE_TINY:
+                    case MYSQL_TYPE_SHORT:
+                    case MYSQL_TYPE_LONG:
+                    case MYSQL_TYPE_INT24:
+                    case MYSQL_TYPE_FLOAT:
+                    case MYSQL_TYPE_DOUBLE:
+										lua_pushinteger(L, stoi(row[i])); break;
       	default: lua_pushlstring(L, row[i], lengths[i]); break;
 			}
       lua_settable(L, -3);

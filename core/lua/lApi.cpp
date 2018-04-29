@@ -79,6 +79,7 @@ void lapi::openApi(lua_State *L)
   LoadNamespace(L, "fs", {
     { "exists", fs::lua::exists },
     { "read", fs::lua::read },
+    { "readLines", fs::lua::readLines },
     { "write", fs::lua::write },
     { "dirList", fs::lua::dirList }
   });
@@ -96,6 +97,8 @@ void lapi::openApi(lua_State *L)
   lua_register(L, "isFlag", lapi::funcs::isFlag);
   lua_register(L, "getPeer", lapi::funcs::getPeer);
   lua_register(L, "resp", lapi::funcs::resp);
+  lua_register(L, "isGroup", lapi::funcs::isGroup);
+  lua_register(L, "getmsg", lapi::funcs::getmsg);
   mysqlwork::api(L);
 
   // JSON

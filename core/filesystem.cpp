@@ -78,8 +78,14 @@ int fs::lua::read(lua_State *L)
 
 int fs::lua::readLines(lua_State *L)
 {
-  // TODO
-  return 0;
+  vector<string> lines = fs::readLines(luaL_checkstring(L, 1));
+  lua_newtable(L);
+  for (int i = 0; i < lines.size(); i++) {
+    lua_pushinteger(L, i + 1);
+    lua_pushfstring(L, lines[i].c_str());
+    lua_settable(L, -3);
+  }
+  return 1;
 }
 
 int fs::lua::write(lua_State *L)

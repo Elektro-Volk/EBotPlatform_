@@ -13,6 +13,8 @@ namespace lapi {
     int isFlag(lua_State *L);
     int getPeer(lua_State *L);
     int resp(lua_State *L);
+    int isGroup(lua_State *L);
+    int getmsg(lua_State *L);
 
     namespace str {
       int starts(lua_State *L);

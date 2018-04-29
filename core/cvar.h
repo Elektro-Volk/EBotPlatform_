@@ -1,7 +1,9 @@
 #pragma once
-#include "common.h"
+#include <string>
 #include <map>
 #include "lua/luai.h"
+
+using namespace std;
 
 namespace cvars {
   class Cvar {
@@ -12,7 +14,8 @@ namespace cvars {
 
     Cvar(string name, string value);
     void setValue(string new_value);
-    string getValue();
+    // Getters
+    bool getBool();
   };
   extern map<string, Cvar*> cvars;
 
@@ -27,3 +30,5 @@ namespace cvars {
     int exists(lua_State *L);
   }
 }
+
+typedef cvars::Cvar* cvar;

@@ -84,7 +84,7 @@ string cmd::exe(const string text)
 			return cmdName + " = " + cmdArgs[1];
 		}
 		else
-			return cmdName + " = " + cvars::get(cmdName)->getValue();
+			return cmdName + " = " + cvars::get(cmdName)->value;
 	}
 	else
 		return "Unknown command \"" + cmdName + "\"";

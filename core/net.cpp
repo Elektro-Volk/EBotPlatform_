@@ -27,7 +27,8 @@ void net::init()
 
 net::CurlObject *net::getCurlObject()
 {
-  return curls.exists(this_thread::get_id()) ? curls[this_thread::get_id()] : curls[main_thread_id];
+  //return curls.exists(this_thread::get_id()) ? curls[this_thread::get_id()] : curls[main_thread_id];
+  return curls[this_thread::get_id()];
 }
 
 net::Request::Request(string url)
@@ -52,13 +53,13 @@ string net::Request::send()
   curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, net::_curlWriteCallback);
   curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, (void *)&buffer);
   //curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "libcurl-agent/1.0");
-  if(headers) {
+  if (headers) {
     struct curl_slist *chunk = NULL;
     for(int i = 0; i < nHeaders; i++)
       chunk = curl_slist_append(chunk, headers[i]);
     curl_easy_setopt(curl_handle, CURLOPT_HTTPHEADER, chunk);
   }
-  if(mimes.size() > 0) {
+  if (mimes.size() > 0) {
     struct curl_httppost *formpost = NULL;
     struct curl_httppost *lastptr = NULL;
     for (auto mime = mimes.begin(); mime != mimes.end(); mime++) {
@@ -67,22 +68,17 @@ string net::Request::send()
   	}
      curl_easy_setopt(curl_handle, CURLOPT_HTTPPOST, formpost);
   }
-  if(data){
+  if (data) {
     curl_easy_setopt(curl_handle, CURLOPT_POST, 1);
   	curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDS, data);
   }
 
   CURLcode res = curl_easy_perform(curl_handle);
-  if(res != CURLE_OK) {
-    co->flush();
-    co->unlock();
+  co->flush(); co->unlock();
+  if(res != CURLE_OK)
     throw new string("curl_easy_perform(" + this->url + ") failed: " + string(curl_easy_strerror(res)));
-  }
-  else {
-    co->flush();
-    co->unlock();
-    return buffer;
-  }
+  //con::log(buffer);
+  return buffer;
 }
 
 
@@ -115,8 +111,7 @@ char* net::makeFields(map<string, string> &fields)
   memcpy(data, paramline.c_str(), paramline.size());
 	return data;
   }
-  else
-   return NULL;
+  else return NULL;
 }
 
 /* Simple GET Request */

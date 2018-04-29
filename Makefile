@@ -19,6 +19,7 @@ SOURCES=	\
 	core/filesystem.cpp \
 	core/mysql_work.cpp \
 	core/lua/luapool.cpp \
+	core/lua/messageBuilder.cpp \
 	core/eapi/eapi.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
 EXECUTABLE=EBP

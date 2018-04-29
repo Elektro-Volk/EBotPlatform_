@@ -32,7 +32,7 @@ string getLogTime()
 void con::init()
 {
 	FILE *file = fopen((bot_path + "/ebp.log").c_str(), "w");
-	fclose(file);
+  if(file) fclose(file);
 }
 
 string makeText(string data)

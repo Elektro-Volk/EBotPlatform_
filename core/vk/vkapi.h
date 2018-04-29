@@ -14,10 +14,11 @@ namespace vk {
     char* send();
   };
 
-  extern string token;
-  extern string version;
-  extern string groupmode;
-  extern string groupid;
+  extern cvars::Cvar *token;
+  extern cvars::Cvar *version;
+  extern cvars::Cvar *groupmode;
+  extern cvars::Cvar *groupid;
+  extern cvars::Cvar *groupid;
 
   void init();
   void start();

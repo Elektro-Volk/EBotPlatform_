@@ -23,7 +23,7 @@ void longpoll::start()
 **************************************/
 longpoll::LongPoll::LongPoll()
 {
-	this->params = { { "version", "2" }, { "act", "a_check" }, { "wait", "25" } };
+	this->params = { { "version", "3" }, { "act", "a_check" }, { "wait", "25" }, { "mode", "10" } };
 	getServer();
 }
 
@@ -35,8 +35,8 @@ void longpoll::LongPoll::getServer()
 {
 	con::log("Getting longpoll server...");
 	rapidjson::Document document;
-	if (vk::groupmode == "1")
-		document = vk::jSend("groups.getLongPollServer", {{ "group_id", vk::groupid }});
+	if (vk::groupmode->getBool())
+		document = vk::jSend("groups.getLongPollServer", {{ "group_id", vk::groupid->value }});
 	else
 		document = vk::jSend("messages.getLongPollServer", {{ "lp_version", "3" }});
 	rapidjson::Value &data = document["response"];
@@ -51,7 +51,7 @@ void longpoll::LongPoll::getServer()
 **************************************/
 void longpoll::LongPoll::loop()
 {
-	if (vk::groupmode == "1")
+	if (vk::groupmode->getBool())
 		loopGroup();
 	else
 		loopUser();
