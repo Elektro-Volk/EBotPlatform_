@@ -85,7 +85,7 @@ bool luapool::Worker::isBusy()
   return busy;
 }
 
-void buildMessage(lua_State *L, rapidjson::Value& longpoll);
+bool pushValue(lua_State *L, const rapidjson::Value &value);
 void luapool::Worker::add(rapidjson::Value &msg)
 {
   std::unique_lock<std::mutex> locker(mutex);
@@ -94,7 +94,7 @@ void luapool::Worker::add(rapidjson::Value &msg)
   lua_unlock(L);
   lua_settop(L, 0);
   lua_getglobal(L, "NewMessage");
-  buildMessage(L, msg);
+  pushValue(L, msg);
   lua_lock(L);
   cv.notify_one();
 }
