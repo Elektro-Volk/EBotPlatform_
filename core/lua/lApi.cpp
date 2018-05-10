@@ -9,6 +9,8 @@
 #include "../vk/vkapi.h"
 #include "../filesystem.h"
 #include "../mysql_work.h"
+// Api INCLUDES
+#include "api/ln_vkapi.h"
 
 struct rfunc {
   const char* name;
@@ -36,6 +38,7 @@ void LoadNamespace(lua_State *L, const char *name, std::vector<rfunc> funcs)
 
 void lapi::openApi(lua_State *L)
 {
+  ln_vkapi::init_api(L);
   // Cmd
   LoadNamespace(L, "cmd", {
     { "exeConfig", cmd::lua::exec },
@@ -54,12 +57,6 @@ void lapi::openApi(lua_State *L)
   LoadNamespace(L, "console", {
     { "log", con::lua::log },
     { "error", con::lua::error }
-  });
-  // VKAPI
-  vk::lua::initVK(L);
-  LoadNamespace(L, "vk", {
-    { "send", vk::lua::send },
-    { "jSend", vk::lua::jSend }
   });
   // String
   LoadNamespace(L, "string", {

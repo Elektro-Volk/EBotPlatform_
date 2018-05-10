@@ -1,22 +1,12 @@
 #pragma once
-#include "../common.h"
-#include "rapidjson/document.h"
-#include <map>
+#include "common.h"
+#include "LongPollConnection.h"
+#include "GroupLongPollConnection.h"
 
 namespace longpoll {
-  class LongPoll {
-  private:
-    string server;
-    map<string, string> params;
-    void getServer();
-    void loopUser();
-    void loopGroup();
-  public:
-    LongPoll();
-    void loop();
-  };
-
-  extern LongPoll* lp;
+  extern cvar lp_debug;
+  extern cvar lp_ignore_myself;
+  extern LongPollConnection* con;
 
   void start();
 }

@@ -5,6 +5,7 @@
 #include "../vk/vkapi.h"
 #include "../strutils.h"
 #include <map>
+#include "lua/api/ln_vkapi.h"
 
 int lapi::funcs::randtable(lua_State *L)
 {
@@ -117,7 +118,7 @@ int lapi::funcs::resp(lua_State *L)
 
 	lua_pushstring(L, "messages.send");
 	lua_insert(L, -2);
-	return vk::lua::jSend(L);
+	return ln_vkapi::vk_jSend(L);
 }
 
 int lapi::funcs::isGroup(lua_State *L)

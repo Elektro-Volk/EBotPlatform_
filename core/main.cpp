@@ -9,13 +9,13 @@
 #include "cmd.h" // cmd::init, cmd::exec, cmd::start
 
 string bot_path = "bot";
-const string _version = "0.7.2";
+const string _version = "0.p8.0";
 int startTime = time(0);
 
 int main(int argc, char* argv[])
 {
 	if(argc == 2) bot_path = argv[1]; // Custom bot path
-	//setlocale(LC_ALL, "");
+	setlocale(LC_ALL, "");
 	// Initialization
 	con::init();
 	con::log("Initialization EBotPlatform V" + _version + "...");
