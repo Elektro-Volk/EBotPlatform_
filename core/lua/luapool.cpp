@@ -73,6 +73,7 @@ luapool::Worker::Worker()
 luapool::Worker::~Worker()
 {
   enabled = false;
+  while(busy){}
   delete net::curls[thread.get_id()];
   net::curls.pop(thread.get_id());
   cv.notify_one();

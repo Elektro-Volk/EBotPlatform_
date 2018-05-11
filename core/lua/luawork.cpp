@@ -63,8 +63,8 @@ bool luawork::safeCall(lua_State* L, int argnum, int retnum)
 void luawork::close()
 {
   luawork::isWorking = false;
-  luaModules::clearModules();
   luapool::close();
+  luaModules::clearModules();
   lua_close(state);
 }
 

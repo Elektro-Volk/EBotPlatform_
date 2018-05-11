@@ -41,6 +41,7 @@ void GroupLongPollConnection::loop()
 {
 	con::log("Bots LongPoll was successfully launched");
 	while (true) {
+		while(!luawork::isWorking){}
 		Document data;
 		data.Parse(net::POST(server, params).c_str());
     // Check data

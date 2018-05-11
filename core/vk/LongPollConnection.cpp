@@ -41,6 +41,7 @@ void LongPollConnection::loop()
 {
 	con::log("LongPoll was successfully launched");
 	while (true) {
+		while(!luawork::isWorking){}
 		Document data;
 		data.Parse(net::POST("https://" + server, params).c_str());
     // Check data
