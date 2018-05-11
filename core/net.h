@@ -72,11 +72,4 @@ namespace net {
   string GET(string url);
   string POST(string url, const char* data);
   string POST(string url, map<string, string> &fields);
-
-  namespace lua {
-    int send(lua_State *L);
-    int jSend(lua_State *L);
-    int getParams(lua_State *L);
-    int UrlEncode(lua_State *L);
-  }
 }

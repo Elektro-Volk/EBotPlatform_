@@ -2,7 +2,7 @@
 #include "common.h"
 #include "lua/luai.h"
 
-namespace col { 
+namespace col {
   extern const string BOLD;
   extern const string red;
   extern const string RED;
@@ -23,8 +23,4 @@ namespace con {
   void init();
   void log(string data);
   void error(string data);
-  namespace lua {
-    int log(lua_State *L);
-    int error(lua_State *L);
-  }
 }

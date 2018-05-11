@@ -1,8 +1,8 @@
 #include "eapi.h"
-#include "../vk/vkapi.h"
-#include "../net.h"
-#include "../cvar.h"
-#include "../console.h"
+#include "vk/vkapi.h"
+#include "net.h"
+#include "cvars.h"
+#include "console.h"
 
 string eapi::key = "-";
 string eapi::url = "http://ebp.elektro-volk.ru/api/";

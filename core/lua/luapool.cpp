@@ -2,11 +2,10 @@
 #include "luapool.h"
 #include "luai.h"
 #include "lJson.h"
-#include "lAPI.h"
-#include "../cvar.h"
-#include "../console.h"
-#include "../cmd.h"
-#include "../net.h"
+#include "cvars.h"
+#include "console.h"
+#include "cmd.h"
+#include "net.h"
 
 char luapool::nWorkers;
 std::vector<luapool::Worker*> luapool::workers;

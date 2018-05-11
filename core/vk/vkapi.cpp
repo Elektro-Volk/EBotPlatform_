@@ -1,7 +1,7 @@
 #include "vkapi.h"
-#include "../net.h"
-#include "../cvar.h"
-#include "../console.h"
+#include "net.h"
+#include "cvars.h"
+#include "console.h"
 #include <chrono>
 #include <thread>
 

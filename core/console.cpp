@@ -62,17 +62,3 @@ void con::error(string data)
 		fclose(file);
 	}
 }
-
-// void console.log(text)
-int con::lua::log(lua_State *L)
-{
-  con::log(luaL_checkstring(L, 1));
-  return 0;
-}
-
-// void console.log(text)
-int con::lua::error(lua_State *L)
-{
-  con::error(luaL_checkstring(L, 1));
-  return 0;
-}

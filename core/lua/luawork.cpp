@@ -1,10 +1,9 @@
 #include "luawork.h"
 #include "luai.h"
 #include "rapidjson/document.h"
-#include "lAPI.h"
-#include "../cvar.h"
-#include "../console.h"
-#include "../cmd.h"
+#include "cvars.h"
+#include "console.h"
+#include "cmd.h"
 #include "luaModules.h"
 #include "luapool.h"
 
@@ -20,13 +19,14 @@ void luawork::init()
   luapool::init();
 }
 
+void init_lua_api(lua_State *L);
 void luawork::start()
 {
   try {
     luaModules::load();
     state = luaL_newstate();
     luaL_openlibs(state);
-    lapi::openApi(state);
+    init_lua_api(state);
     con::log("Loading modules...");
     luaModules::loadModules(state);
     if(luaL_loadfile(state, (bot_path + "/scripts/" + script_path).c_str()))

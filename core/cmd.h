@@ -27,13 +27,4 @@ namespace cmd
 	string c_exec(args cmd_args);
 	string c_help(args cmd_args);
 	string data(args cmd_args, int sub);
-
-	namespace lua
-	{
-		int exec(lua_State *L);
-		int exists(lua_State *L);
-		int exe(lua_State *L);
-		int parse(lua_State *L);
-		int data(lua_State *L);
-	}
 }

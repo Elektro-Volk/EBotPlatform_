@@ -1,8 +1,8 @@
 #include "luawork.h"
 #include "luaModules.h"
-#include "../console.h"
-#include "../filesystem.h"
-#include "lAPI.h"
+#include "console.h"
+#include "filesystem.h"
+#include "api/lu_other.h"
 
 vector<luaModules::Module> luaModules::list;
 
@@ -21,7 +21,7 @@ void luaModules::loadModules(lua_State *L)
 	for (auto it = list.begin(); it != list.end(); ++it)
 	{
 		lua_pushfstring(L, "scripts/modules/%s", it->name.c_str());
-		if (lapi::funcs::connect(L)) {
+		if (lu_other::connect(L)) {
 			it->isLoaded = !lua_isstring(L, -1);
 			if (!it->isLoaded)
 					con::error("lua[Loading  " + it->name + "] -> " + lua_tostring(L, -1));

@@ -2,7 +2,7 @@
 #include <fstream>
 #include "cmd.h"
 #include "console.h"
-#include "cvar.h"
+#include "cvars.h"
 #include <thread>
 #include <iostream>
 #include <map>
@@ -147,67 +147,4 @@ string cmd::data(args cmd_args, int sub)
 		ret += " " + cmd_args[i];
 	}
 	return ret.substr(1);
-}
-
-// void exec (path)
-int cmd::lua::exec(lua_State * L)
-{
-	const char *path = luaL_checkstring(L, 1);
-	cmd::exec(path);
-	return 0;
-}
-
-// bool exists (cmd_name)
-int cmd::lua::exists(lua_State * L)
-{
-	const char *cmd_name = luaL_checkstring(L, 1);
-	lua_pushboolean(L, cmd::exists(cmd_name));
-	return 1;
-}
-
-// string exe (cmd_name)
-int cmd::lua::exe(lua_State * L)
-{
-	const char *cmd_name = luaL_checkstring(L, 1);
-	lua_pushstring(L, cmd::exe(cmd_name).c_str());
-	return 1;
-}
-
-// table parse (line)
-int cmd::lua::parse(lua_State * L)
-{
-	const char *line = luaL_checkstring(L, 1);
-	auto parsed = cmd::parse(line);
-
-	lua_newtable(L);
-	for (int i = 0; i < parsed.size(); i++) {
-		lua_pushnumber(L, i+1); // Key
-		lua_pushstring(L, parsed[i].c_str()); // Value
-		lua_settable(L, -3);
-	}
-	return 1;
-}
-
-// string data (table)
-int cmd::lua::data(lua_State * L)
-{
-	vector<string> _args = vector<string>();
-	int sub = 0;
-
-	luaL_checktype(L, 1, LUA_TTABLE);
-	luaL_checktype(L, 2, LUA_TNUMBER);
-	sub = lua_tointeger(L, 2);
-
-	lua_pushnil(L);
-	while (lua_next(L, 1))
-	{
-		lua_pushvalue(L, -1);
-		luaL_checktype(L, -1, LUA_TSTRING);
-		_args.push_back(lua_tostring(L, -1));
-		lua_pop(L, 2);
-	}
-
-	lua_pushstring(L, cmd::data(_args, sub).c_str());
-
-	return 1;
 }
