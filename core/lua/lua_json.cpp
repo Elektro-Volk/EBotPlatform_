@@ -1,4 +1,4 @@
-#include "lJson.h"
+#include "lua_json.h"
 #include "rapidjson/document.h"
 #include "rapidjson/error/en.h"
 #include "../common.h"
@@ -6,18 +6,13 @@
 
 using namespace rapidjson;
 
-void pushObject(lua_State *L, const rapidjson::Value &j);
-void pushArray(lua_State *L, const rapidjson::Value &array);
-bool pushValue(lua_State *L, const rapidjson::Value &value);
-
-int lJson::encode(lua_State *L)
+int lua_json::encode(lua_State *L)
 {
-return 0; // TODO
+  return 0; // TODO
 }
 
 // --------------- DECODER ---------------
-
-void pushObject(lua_State *L, const rapidjson::Value &j)
+void lua_json::pushObject(lua_State *L, const rapidjson::Value &j)
 {
   lua_newtable(L);
   for (Value::ConstMemberIterator it = j.MemberBegin(); it != j.MemberEnd(); ++it) {
@@ -26,7 +21,7 @@ void pushObject(lua_State *L, const rapidjson::Value &j)
   }
 }
 
-void pushArray(lua_State *L, const rapidjson::Value &array)
+void lua_json::pushArray(lua_State *L, const rapidjson::Value &array)
 {
   lua_newtable(L);
   for (int i = 0; i < array.Size(); i++) {
@@ -38,7 +33,7 @@ void pushArray(lua_State *L, const rapidjson::Value &array)
   }
 }
 
-bool pushValue(lua_State *L, const rapidjson::Value &value)
+bool lua_json::pushValue(lua_State *L, const rapidjson::Value &value)
 {
   switch (value.GetType()) {
     case 1: { lua_pushboolean(L, false); break; }
@@ -58,7 +53,7 @@ bool pushValue(lua_State *L, const rapidjson::Value &value)
   return true;
 }
 
-int lJson::decode(lua_State *L)
+int lua_json::decode(lua_State *L)
 {
   rapidjson::Document j;
   rapidjson::ParseResult ok = j.Parse(luaL_checkstring(L, -1));
@@ -67,6 +62,6 @@ int lJson::decode(lua_State *L)
      return 1;
   }
   lua_pop(L, 1);
-  pushValue(L, j);
+  lua_json::pushValue(L, j);
   return 1;
 }

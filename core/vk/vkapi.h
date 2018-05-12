@@ -1,7 +1,7 @@
 #pragma once
 #include "../common.h"
 #include "rapidjson/document.h"
-#include "../lua/lJson.h"
+#include "../lua/lua_json.h"
 #include <map>
 
 namespace vk {

@@ -12,7 +12,7 @@ GNU General Public License for more details.
 */
 #include "ln_vkapi.h"
 #include "common.h"
-#include "../lJson.h"
+#include "../lua_json.h"
 #include "vk/vkapi.h"
 
 void ln_vkapi::init_api(lua_State *L)
@@ -64,7 +64,7 @@ int ln_vkapi::vk_send(lua_State *L)
 /* table vk.jSend(method, params) */
 int ln_vkapi::vk_jSend(lua_State *L)
 {
-  ln_vkapi::vk_send(L); lJson::decode(L);
+  ln_vkapi::vk_send(L); lua_json::decode(L);
   return 1;
 }
 

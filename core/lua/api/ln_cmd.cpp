@@ -12,7 +12,7 @@ GNU General Public License for more details.
 */
 #include "ln_cmd.h"
 #include "common.h"
-#include "../lJson.h"
+#include "../lua_json.h"
 #include "cmd.h"
 
 void ln_cmd::init_api(lua_State *L)

@@ -1,5 +1,5 @@
 /*
-lu_json.cpp
+chat_cache.h
 Copyright (C) 2018 Elektro-Volk
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -10,11 +10,27 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 */
-#include "lu_json.h"
+#pragma once
 #include "common.h"
-#include "lua/lua_json.h"
+#include <map>
+#include <vector>
 
-void lu_json::init_api(lua_State *L)
-{
-  lua_register(L, "jDecode", lua_json::decode);
-}
+struct chat_info {
+  int id;
+  string type;
+  string title;
+  int admin_id;
+  std::vector<int> users;
+};
+
+namespace chat_cache {
+  extern std::map<int, chat_info> chats;
+
+  void updateInfo(int id);
+  chat_info *getChat(int id);
+
+  string c_clist(vector<string> _args);
+  string c_cupd(vector<string> _args);
+  string c_crem(vector<string> _args);
+  string c_cinfo(vector<string> _args);
+};

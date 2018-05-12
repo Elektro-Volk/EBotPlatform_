@@ -1,4 +1,4 @@
-#include "lJson.h"
+#include "lua_json.h"
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"

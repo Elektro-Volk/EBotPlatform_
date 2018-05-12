@@ -1,7 +1,7 @@
 #include "luawork.h"
 #include "luapool.h"
 #include "luai.h"
-#include "lJson.h"
+#include "lua_json.h"
 #include "cvars.h"
 #include "console.h"
 #include "cmd.h"
@@ -85,7 +85,6 @@ bool luapool::Worker::isBusy()
   return busy;
 }
 
-bool pushValue(lua_State *L, const rapidjson::Value &value);
 void luapool::Worker::add(rapidjson::Value &msg)
 {
   std::unique_lock<std::mutex> locker(mutex);
@@ -94,7 +93,7 @@ void luapool::Worker::add(rapidjson::Value &msg)
   lua_unlock(L);
   lua_settop(L, 0);
   lua_getglobal(L, "NewMessage");
-  pushValue(L, msg);
+  lua_json::pushValue(L, msg);
   lua_lock(L);
   cv.notify_one();
 }

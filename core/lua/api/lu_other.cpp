@@ -12,7 +12,7 @@ GNU General Public License for more details.
 */
 #include "lu_other.h"
 #include "common.h"
-#include "lua/lJson.h"
+#include "lua/lua_json.h"
 #include "lua/luawork.h"
 #include "console.h"
 #include "vk/vkapi.h"
@@ -157,13 +157,12 @@ int lu_other::isGroup(lua_State *L)
   return 1;
 }
 
-bool pushValue(lua_State *L, const rapidjson::Value &value);
 int lu_other::getmsg(lua_State *L)
 {
   std::string id = to_string(luaL_checknumber(L, 1));
 
 	rapidjson::Document result = vk::jSend("messages.getById", {{"message_ids", id}});
   if(!result.IsObject() || !result.HasMember("response")) return 0;
-	pushValue(L, result["response"]["items"][0]);
+	lua_json::pushValue(L, result["response"]["items"][0]);
 	return 1;
 }

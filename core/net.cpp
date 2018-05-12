@@ -12,7 +12,7 @@
 #include <cstring>
 #include <curl/curl.h>
 #include "lock.h"
-#include "lua/lJson.h"
+#include "lua/lua_json.h"
 #include <vector>
 #include "console.h"
 

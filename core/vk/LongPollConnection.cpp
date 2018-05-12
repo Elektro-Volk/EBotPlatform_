@@ -16,6 +16,8 @@ GNU General Public License for more details.
 #include "vkapi.h"
 #include "lua/luawork.h"
 #include "net.h"
+#include "strutils.h"
+#include "chat_cache.h"
 
 using namespace rapidjson;
 
@@ -79,6 +81,15 @@ void LongPollConnection::processMessage(rapidjson::Value &msg)
   bool is_chat = peer_id > 2000000000;
   int user_id = is_chat ? stoi(msg[6]["from"].GetString()) : peer_id;
   int flags = msg[2].GetInt();
+	string body = msg[5].GetString();
+	strutils::replace(body, "&amp;", "&");
+	strutils::replace(body, "&apos;", "'");
+	strutils::replace(body, "&quot;", "\"");
+	strutils::replace(body, "&gt;", ">");
+	strutils::replace(body, "&lt;", "<");
+	strutils::replace(body, "<br>", "\n");
+	auto body_value = const_cast<char*>(body.c_str());
+	chat_info *chat = is_chat ? chat_cache::getChat(peer_id - 2000000000) : nullptr;
 
   Document d(kObjectType);
   {
@@ -88,11 +99,13 @@ void LongPollConnection::processMessage(rapidjson::Value &msg)
       d.AddMember("date", msg[4], d.GetAllocator());
       d.AddMember("read_state", Value().SetInt(flags&1 ? 0 : 1), d.GetAllocator());
       d.AddMember("out", Value().SetInt(flags&2 ? 1 : 0), d.GetAllocator());
-      d.AddMember("title", Value().SetString("TODO"), d.GetAllocator());
-      d.AddMember("body", msg[5], d.GetAllocator());
+      d.AddMember("body", Value().SetString(body_value, d.GetAllocator()), d.GetAllocator());
       if (is_chat) {
         d.AddMember("chat_id", Value().SetInt(peer_id - 2000000000), d.GetAllocator());
+				d.AddMember("title", Value().SetString(const_cast<char*>(chat->title.c_str()), d.GetAllocator()), d.GetAllocator());
       }
+			else
+				d.AddMember("title", Value().SetString(" ... "), d.GetAllocator());
   }
 
   luawork::push(d);

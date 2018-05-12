@@ -14,7 +14,7 @@ GNU General Public License for more details.
 #include "common.h"
 #include "net.h"
 #include <vector>
-#include "../lJson.h"
+#include "../lua_json.h"
 
 void ln_net::init_api(lua_State *L)
 {
@@ -80,6 +80,6 @@ int ln_net::send(lua_State* L)
 int ln_net::jSend(lua_State *L)
 {
   ln_net::send(L);
-  lJson::decode(L);
+  lua_json::decode(L);
   return 1;
 }

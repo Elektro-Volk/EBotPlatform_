@@ -14,10 +14,11 @@ SOURCES= \
 	core/vk/LongPollConnection.cpp \
 	core/vk/GroupLongPollConnection.cpp \
 	core/vk/longpoll.cpp \
+	core/vk/chat_cache.cpp \
 	core/lua/luawork.cpp \
 	core/lua/luapool.cpp \
 	core/lua/luaModules.cpp \
-	core/lua/lJson.cpp \
+	core/lua/lua_json.cpp \
 	core/lua/api/ln_vkapi.cpp \
 	core/lua/api/ln_mysql.cpp \
 	core/lua/api/ln_cmd.cpp \

@@ -44,7 +44,15 @@ string strutils::toUpper(string str)
   }
   return to_string(ss);
 }
- 
+
+void strutils::replace(std::string& str, const std::string& old, const std::string& repl) {
+size_t pos = 0;
+while ((pos = str.find(old, pos)) != std::string::npos) {
+str.replace(pos, old.length(), repl);
+pos += repl.length();
+}
+}
+
 vector<string> strutils::split(string str, char sep)
 {
   vector<string> tokens;
