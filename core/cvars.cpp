@@ -21,6 +21,16 @@ bool cvars::Cvar::getBool()
   return value == "1";
 }
 
+int cvars::Cvar::getInt()
+{
+  return stoi(value);
+}
+
+string cvars::Cvar::getString()
+{
+  return value;
+}
+
 cvars::Cvar *cvars::add(string name, string value)
 {
   Cvar *cvar = new Cvar(name, value);

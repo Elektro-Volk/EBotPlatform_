@@ -13,7 +13,7 @@ cvars::Cvar *vk::groupid;
 void vk::init()
 {
   vk::token = cvars::add("vk_token", "-");
-  vk::version = cvars::add("vk_version", "5.73");
+  vk::version = cvars::add("vk_version", "5.80");
   vk::groupmode = cvars::add("vk_group", "0");
   vk::groupid = cvars::add("vk_groupid", "0");
 }

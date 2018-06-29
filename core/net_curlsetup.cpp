@@ -1,5 +1,6 @@
+//std::lock_guard<std::mutex> lock(mutex);
 /*
-LongPollConnection.h
+net_CurlObject.cpp
 Copyright (C) 2018 Elektro-Volk
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -10,18 +11,22 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 */
-#pragma once
-#include "common.h"
-#include "rapidjson/document.h"
+#include "net.h"
+#include "net_curlsetup.h"
+#include <thread>
 
-class LongPollConnection {
-private:
-  string server;
-  map<string, string> params;
-  void processError(rapidjson::Document &err);
-  void processMessage(rapidjson::Value &msg);
-public:
-  LongPollConnection();
-  void getServer();
-  void loop();
-};
+using thread = std::thread;
+
+thread::id main_thread_id  = std::this_thread::get_id();
+Nextlist<thread::id, CURL*> handles;
+
+curltuner::curltuner()
+{
+    handle = handles[std::this_thread::get_id()];
+    net::setup_curl(handle, &buffer);
+}
+
+curltuner::~curltuner()
+{
+    curl_easy_reset(handle);
+}

@@ -7,13 +7,13 @@
 #include "luaModules.h"
 #include "luapool.h"
 
-lua_State *luawork::state;
-string luawork::script_path = "main.lua";
 bool luawork::isWorking = false;
+lua_State *luawork::state;
+cvar luawork::lua_script;
 
 void luawork::init()
 {
-  cvars::add("lua_script", &script_path);
+  lua_script = cvars::add("lua_script", "main.lua");
   cmd::add("relua", luawork::c_relua, "Reload lua scripts");
   cmd::add("mlist", luaModules::c_mlist, "Lua modules list");
   luapool::init();
@@ -22,28 +22,28 @@ void luawork::init()
 void init_lua_api(lua_State *L);
 void luawork::start()
 {
-  try {
-    luaModules::load();
-    state = luaL_newstate();
-    luaL_openlibs(state);
-    init_lua_api(state);
-    con::log("Loading modules...");
-    luaModules::loadModules(state);
-    if(luaL_loadfile(state, (bot_path + "/scripts/" + script_path).c_str()))
-      throw new string("lua[load] -> " + string(lua_tostring(state, -1)));
-    if(lua_pcall(state, 0, LUA_MULTRET, 0))
-      throw new string("lua[start] -> " + string(lua_tostring(state, -1)));
-    luaModules::startModules(state);
-    luapool::start();
-    luawork::isWorking = true;
-    con::log("Lua has been loaded.");
-  }
-  catch(string *str) {
-    luawork::isWorking = false;
-    con::error(*str);
-    con::error("Fix all the Lua errors and reload Lua (relua)");
-    delete str;
-  }
+    try {
+        luaModules::load();
+        state = luaL_newstate();
+        luaL_openlibs(state);
+        init_lua_api(state);
+
+        luaModules::loadModules(state);
+        if(luaL_loadfile(state, (bot_path + "/scripts/" + lua_script->getString()).c_str()))
+            throw new string("lua[load] -> " + string(lua_tostring(state, -1)));
+        if(lua_pcall(state, 0, LUA_MULTRET, 0))
+            throw new string("lua[start] -> " + string(lua_tostring(state, -1)));
+        luaModules::startModules(state);
+        luapool::start();
+        luawork::isWorking = true;
+        con::log("Скрипты были успешно запущены.");
+    }
+    catch(string *str) {
+        luawork::isWorking = false;
+        con::error(*str);
+        con::error("Исправьте все ошибки и перезагрузите скрипты. (relua)");
+        delete str;
+    }
 }
 
 void luawork::push(rapidjson::Value &msg)

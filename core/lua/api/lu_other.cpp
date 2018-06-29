@@ -114,40 +114,26 @@ int lu_other::isFlag(lua_State *L)
 // int uptime()
 int lu_other::getPeer(lua_State *L)
 {
-  luaL_checktype(L, -1, LUA_TTABLE);
-	lua_getfield(L, -1, "chat_id");
-	if (lua_isnil(L, -1)) {
-		lua_getfield(L, -2, "user_id");
-    if (lua_isnil(L, -1)) { // LongPoll message
-      lua_rawgeti(L, -3, 4);
-      lua_pushstring(L, to_string(lua_tointeger(L, -1)).c_str());
-  		lua_remove(L, -2);
-    } else
-		lua_pushstring(L, to_string(lua_tointeger(L, -1)).c_str());
-		lua_remove(L, -2);
-	}
-	else
-		lua_pushfstring(L, to_string(2000000000 + lua_tointeger(L, -1)).c_str());
-	lua_remove(L, -2);
+    luaL_checktype(L, 1, LUA_TTABLE);
+	lua_getfield(L, 1, "peer_id");
 	return 1;
 }
 
 // int uptime()
 int lu_other::resp(lua_State *L)
 {
-  luaL_checktype(L, 1, LUA_TTABLE);
+    luaL_checktype(L, 1, LUA_TTABLE);
 	if (lua_isstring(L, 2)) {
 		lua_newtable(L);
 		lua_insert(L, 2);
 		lua_setfield(L, -2, "message");
 	}
-	lua_insert(L, 1);
-	getPeer(L);
-	lua_setfield(L, 1, "peer_id");
-	lua_remove(L, -1);
+	lua_getfield(L, 1, "peer_id");
+	lua_setfield(L, 2, "peer_id");
 
 	lua_pushstring(L, "messages.send");
-	lua_insert(L, -2);
+    lua_remove(L, 1);
+	lua_insert(L, 1);// STR TAB
 	return ln_vkapi::vk_jSend(L);
 }
 

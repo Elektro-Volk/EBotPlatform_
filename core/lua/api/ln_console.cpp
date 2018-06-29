@@ -13,6 +13,7 @@ GNU General Public License for more details.
 #include "ln_console.h"
 #include "common.h"
 #include "console.h"
+#include "lua/luawork.h"
 
 void ln_console::init_api(lua_State *L)
 {
@@ -27,8 +28,12 @@ void ln_console::init_api(lua_State *L)
 // void console.log(text)
 int ln_console::log(lua_State *L)
 {
-  con::log(luaL_checkstring(L, 1));
-  return 0;
+    lua_getglobal(L, "string");
+	lua_getfield(L,-1, "format");
+    lua_insert(L, 1);
+    luawork::safeCall(L, lua_gettop(L) - 1, 1);
+    con::log(luaL_checkstring(L, 1));
+    return 0;
 }
 
 // void console.log(text)

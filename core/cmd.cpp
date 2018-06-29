@@ -19,7 +19,8 @@ void cmd::init()
 
 void cmd::start()
 {
-	thread(readLoop).detach();
+	cmd::exec("config.cfg");
+	std::thread(readLoop).detach();
 }
 
 void cmd::readLoop()

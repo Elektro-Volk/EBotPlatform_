@@ -7,7 +7,7 @@
 namespace luawork {
   extern lua_State *state;
   extern bool isWorking;
-  extern string script_path;
+  extern cvar lua_script;
 
   void init();
   void start();

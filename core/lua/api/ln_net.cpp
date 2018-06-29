@@ -38,39 +38,20 @@ int ln_net::send(lua_State* L)
   }
   else {
     if(lua_istable(L, 2)) { // Params
-      Request *request = new Request(lua_tostring(L, 1));
-      vector<const char*> headers;
-      map<string, string> _args;
-      map<const char*, const char*> mimes;
       lua_pushnil(L);
+      map<string, string> args;
       while (lua_next(L, 2)) {
         lua_pushvalue(L, -2);
-        const char* param = luaL_checkstring(L, -1);
-        if(param[0] == '!')
-          headers.push_back(luaL_checkstring(L, -2));
-        else if(param[0] == '#')
-          mimes.insert(pair<const char*, const char*>(string(param).substr(1).c_str(), luaL_checkstring(L, -2)));
-        else
-          _args.insert(pair<string, string>(param, luaL_checkstring(L, -2)));
+        args.insert(pair<string, string>(luaL_checkstring(L, -1), luaL_checkstring(L, -2)));
         lua_pop(L, 2);
       }
 
-      const char* fields = makeFields(_args);
-      request->setData(fields);
-      if(headers.size() > 0) {
-        request->headers = headers.data();
-        request->nHeaders = headers.size();
-      }
-      request->mimes = mimes;
-
-      auto res = request->send();
-      lua_pushlstring(L, res.c_str(), res.size());
-      delete request;
-      delete fields;
+      auto result = ::net::POST(lua_tostring(L, 1), args);
+      lua_pushlstring(L, result.c_str(), result.size());
     }
     else {
-      auto res = ::net::POST(lua_tostring(L, 1), lua_tostring(L, 2));
-      lua_pushlstring(L, res.c_str(), res.size());
+      auto result = ::net::POST(lua_tostring(L, 1), lua_tostring(L, 2));
+      lua_pushlstring(L, result.c_str(), result.size());
     }
   }
   return 1;

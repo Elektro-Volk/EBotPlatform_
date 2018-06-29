@@ -16,6 +16,8 @@ namespace cvars {
     void setValue(string new_value);
     // Getters
     bool getBool();
+    int getInt();
+    string getString();
   };
   extern map<string, Cvar*> cvars;
 

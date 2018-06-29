@@ -1,3 +1,6 @@
 [submodule "rjson"]
 	path = rjson
 	url = https://github.com/Tencent/rapidjson
+[submodule "mingwthreads"]
+	path = mingwthreads
+	url = https://github.com/meganz/mingw-std-threads.git

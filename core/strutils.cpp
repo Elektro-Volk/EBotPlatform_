@@ -1,20 +1,22 @@
 #include "strutils.h"
+#include "console.h"
 #include <codecvt>
-#include <locale>
 #include <iostream>
+#include <locale>
 #include <string>
 #include <sstream>
-#include <codecvt>
+#include "utf8cases.h"
 
+std::wstring to_wstring(std::string const& s)
+{
 #ifdef __linux__
-	std::locale const utf8("en_US.UTF-8");
-#elif _WIN32
-	std::locale const utf8("rus");
+	std::wstring_convert<std::codecvt_utf8<wchar_t> > conv;
+	return conv.from_bytes(s);
+#else
+	std::wstring buf(s.size(),0);
+  MultiByteToWideChar(CP_UTF8, 0, s.c_str(), (int)s.length(), const_cast<wchar_t*>(buf.data()), s.size());
+  return buf;
 #endif
-
-std::wstring to_wstring(std::string const& s) {
-  std::wstring_convert<std::codecvt_utf8<wchar_t> > conv;
-  return conv.from_bytes(s);
 }
 
 std::string to_string(std::wstring const& s) {
@@ -29,18 +31,22 @@ bool strutils::starts(string str, string token)
 
 string strutils::toLower(string str)
 {
-  auto ss = to_wstring(str);
+	auto ss = to_wstring(str);
   for (auto& c : ss) {
-    c = std::tolower(c, utf8);
+    c = std::tolower(c);
+		for (int j = 0; j < UTF8CASES_SIZE; j++)
+			if (c == cases[j][0]) { c = cases[j][1]; break; }
   }
   return to_string(ss);
 }
 
 string strutils::toUpper(string str)
 {
-  auto ss = to_wstring(str);
+	auto ss = to_wstring(str);
   for (auto& c : ss) {
-    c = std::toupper(c, utf8);
+    c = std::toupper(c);
+		for (int j = 0; j < UTF8CASES_SIZE; j++)
+			if (c == cases[j][1]) { c = cases[j][0]; break; }
   }
   return to_string(ss);
 }

@@ -18,13 +18,14 @@ string luaModules::c_mlist(vector<string> cmd_args)
 
 void luaModules::loadModules(lua_State *L)
 {
+	con::log("Загрузка модулей...");
 	for (auto it = list.begin(); it != list.end(); ++it)
 	{
 		lua_pushfstring(L, "scripts/modules/%s", it->name.c_str());
 		if (lu_other::connect(L)) {
 			it->isLoaded = !lua_isstring(L, -1);
 			if (!it->isLoaded)
-					con::error("lua[Loading  " + it->name + "] -> " + lua_tostring(L, -1));
+					con::error("lua[Загрузка  " + it->name + "] -> " + lua_tostring(L, -1));
 			lua_setglobal(L, it->name.c_str());
 		}
 		lua_settop(L, 0);
@@ -44,7 +45,7 @@ void luaModules::startModules(lua_State *L)
     lua_getfield(L, -1, "Start");
     if(!lua_isnil(L, -1))
       if(lua_pcall(L, 0, LUA_MULTRET, 0))
-        con::error("lua[Starting " + it->name + "] -> " + string(lua_tostring(L, -1)));
+        con::error("lua[Запуск " + it->name + "] -> " + string(lua_tostring(L, -1)));
 		lua_settop(L, 0);
 	}
 }

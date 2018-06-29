@@ -20,6 +20,7 @@ const string col::cyan = "\033[0;36m";
 const string col::CYAN = "\033[1;36m";
 const string col::NC = "\033[0m";
 
+
 string getLogTime()
 {
   auto t = std::time(nullptr);
@@ -31,13 +32,25 @@ string getLogTime()
 
 void con::init()
 {
+    #ifdef __MINGW32__
+		SetConsoleOutputCP(CP_UTF8);
+	#endif
+
 	FILE *file = fopen((bot_path + "/ebp.log").c_str(), "w");
   if(file) fclose(file);
+
+  con::log("EBotPlatform V" + _version);
+  con::log("Copyright Elektro-volk 2016-2018");
 }
 
 string makeText(string data)
 {
-  return col::blue + "[" + col::BLUE +  getLogTime() + col::blue + "] " + col::NC + data + "\n" + col::NC;
+  #ifdef __linux__
+    return col::blue + "[" + col::BLUE +  getLogTime() + col::blue + "] " + col::NC + data + "\n" + col::NC;
+  #else
+    return "[" +  getLogTime() + "] " + data + "\n";
+  #endif
+
 }
 
 void con::log(string data)

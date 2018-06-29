@@ -49,6 +49,7 @@ void fs::writeLines(string fname, vector<string> data)
 vector<string> fs::dirList(string _dir)
 {
   vector<string> data;
+#ifdef __linux__
   DIR *dir = opendir((_dir[0] == '/' ? _dir : bot_path + '/' + _dir).c_str());
   if(dir)
   {
@@ -60,5 +61,18 @@ vector<string> fs::dirList(string _dir)
       data.push_back(f);
     }
   }
+#else
+  string search_path = (_dir[0] == '/' ? _dir : bot_path + '/' + _dir) + "/*.*";
+  WIN32_FIND_DATA fd;
+  HANDLE hFind = ::FindFirstFile(search_path.c_str(), &fd);
+  if(hFind != INVALID_HANDLE_VALUE) {
+      do {
+            if(! (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ) {
+                data.push_back(fd.cFileName);
+            }
+      }while(::FindNextFile(hFind, &fd));
+      ::FindClose(hFind);
+    }
+#endif
   return data;
 }

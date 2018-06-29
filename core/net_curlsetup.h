@@ -1,5 +1,5 @@
 /*
-GroupLongPollConnection.h
+net_curlsetup.h
 Copyright (C) 2018 Elektro-Volk
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -11,16 +11,14 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 */
 #pragma once
-#include "LongPollConnection.h"
+#include "common.h"
+#include <curl/curl.h>
 
-class GroupLongPollConnection : public LongPollConnection {
-private:
-  string server;
-  map<string, string> params;
-  void processError(rapidjson::Document &err);
-  void processMessage(rapidjson::Value &msg) override;
+class curltuner {
 public:
-  GroupLongPollConnection();
-  void getServer() override;
-  void loop() override;
+    CURL *handle;
+    string buffer;
+
+    curltuner();
+    ~curltuner();
 };

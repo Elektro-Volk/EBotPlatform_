@@ -1,19 +1,31 @@
-CC=g++
+CC=i686-w64-mingw32-g++
 CFLAGS=-std=c++11 -c
-LDFLAGS=-L./lua -llualinux -lcurl -DLUA_USER_H=\"lua/lua_user.h\" -ldl -lmysqlclient -lpthread
-INCLUDES=-I./core -Irjson/include/
+LDFLAGS= \
+-static-libstdc++ \
+-static-libgcc \
+-Wl,-enable-stdcall-fixup \
+-L./lua \
+-lluawin \
+-L../libs -lcurl -lcurldll \
+-DLUA_USER_H=\"lua/lua_user.h\" \
+-L../mysql-connector-c-6.1.11-win32/lib \
+-lmysql
+INCLUDES= \
+-I./core -Irjson/include/ \
+-I../curl-7.59.0/include \
+-I../mysql-connector-c-6.1.11-win32 \
+-D _WIN32_WINNT=0x0601
 SOURCES= \
 	core/cmd.cpp \
 	core/console.cpp \
 	core/cvars.cpp \
 	core/filesystem.cpp \
 	core/main.cpp \
-	core/host.cpp \
-	core/net_curlsetup.cpp \
 	core/net.cpp \
 	core/strutils.cpp \
 	core/vk/vkapi.cpp \
 	core/vk/LongPollConnection.cpp \
+	core/vk/GroupLongPollConnection.cpp \
 	core/vk/longpoll.cpp \
 	core/vk/chat_cache.cpp \
 	core/lua/luawork.cpp \
@@ -33,7 +45,7 @@ SOURCES= \
 	core/lua/api/luaapi.cpp \
 	core/eapi/eapi.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
-EXECUTABLE=EBP
+EXECUTABLE=EBP.exe
 
 all: $(SOURCES) $(EXECUTABLE)
 

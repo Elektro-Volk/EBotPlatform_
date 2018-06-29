@@ -6,82 +6,34 @@
   Elektro-Volk 2017-2018
   <elektro-volk@yandex.ru>
 */
+#ifdef __MINGW32__
+  #include <windows.h>
+#endif
 #include "net.h"
+#include "net_curlsetup.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <cstring>
-#include <curl/curl.h>
 #include "lock.h"
-#include "lua/lua_json.h"
 #include <vector>
 #include "console.h"
 
-thread::id net::main_thread_id  = std::this_thread::get_id();
-Nextlist<thread::id, net::CurlObject*> net::curls;
+extern thread::id main_thread_id;
+extern Nextlist<thread::id, CURL*> handles;
 
 void net::init()
 {
-  curl_global_init(CURL_GLOBAL_ALL);
-  curls.push(main_thread_id, new CurlObject());
+    curl_global_init(CURL_GLOBAL_ALL);
+    handles.push(main_thread_id, curl_easy_init());
 }
 
-net::CurlObject *net::getCurlObject()
+void net::setup_curl(CURL *handle, string *buffer)
 {
-  //return curls.exists(this_thread::get_id()) ? curls[this_thread::get_id()] : curls[main_thread_id];
-  return curls[this_thread::get_id()];
+    curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, net::_curlWriteCallback);
+    curl_easy_setopt(handle, CURLOPT_WRITEDATA, (void *)buffer);
+    curl_easy_setopt(handle, CURLOPT_SSL_VERIFYPEER, 0);
+    curl_easy_setopt(handle, CURLOPT_USERAGENT, "EBP/0.9");
 }
-
-net::Request::Request(string url)
-{
-  this->url = url;
-}
-
-void net::Request::setData(const char* data)
-{
-  this->data = data;
-}
-
-string net::Request::send()
-{
-  string buffer;
-
-  auto co = net::getCurlObject();
-  co->lock();
-  CURL *curl_handle = co->handle;
-  //curl_easy_setopt(curl_handle, CURLOPT_TCP_FASTOPEN, 1);
-  curl_easy_setopt(curl_handle, CURLOPT_URL, this->url.c_str());
-  curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, net::_curlWriteCallback);
-  curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, (void *)&buffer);
-  //curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "libcurl-agent/1.0");
-  if (headers) {
-    struct curl_slist *chunk = NULL;
-    for(int i = 0; i < nHeaders; i++)
-      chunk = curl_slist_append(chunk, headers[i]);
-    curl_easy_setopt(curl_handle, CURLOPT_HTTPHEADER, chunk);
-  }
-  if (mimes.size() > 0) {
-    struct curl_httppost *formpost = NULL;
-    struct curl_httppost *lastptr = NULL;
-    for (auto mime = mimes.begin(); mime != mimes.end(); mime++) {
-      curl_formadd(&formpost, &lastptr, CURLFORM_COPYNAME, mime->first,
-              CURLFORM_FILE, mime->second, CURLFORM_CONTENTTYPE, "multipart/form-data", CURLFORM_END);
-  	}
-     curl_easy_setopt(curl_handle, CURLOPT_HTTPPOST, formpost);
-  }
-  if (data) {
-    curl_easy_setopt(curl_handle, CURLOPT_POST, 1);
-  	curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDS, data);
-  }
-
-  CURLcode res = curl_easy_perform(curl_handle);
-  co->flush(); co->unlock();
-  if(res != CURLE_OK)
-    throw new string("curl_easy_perform(" + this->url + ") failed: " + string(curl_easy_strerror(res)));
-  //con::log(buffer);
-  return buffer;
-}
-
-
 
 size_t net::_curlWriteCallback(char *ptr, size_t size, size_t nmemb, void *data)
 {
@@ -100,42 +52,48 @@ string urlEncode(string str)
 	return result;
 }
 
-char* net::makeFields(map<string, string> &fields)
+string net::makeFields(map<string, string> &fields)
 {
-  if(fields.size() > 0) {
+  if(fields.size() == 0) return "";
+
 	string paramline;
 	for (auto iter = fields.begin(); iter != fields.end(); iter++) {
 		paramline += iter->first + "=" + urlEncode(iter->second) + "&";
 	}
-  char *data = new char[paramline.size()];
-  memcpy(data, paramline.c_str(), paramline.size());
-	return data;
-  }
-  else return NULL;
+
+	return paramline;
 }
 
 /* Simple GET Request */
 string net::GET(string url)
 {
-  Request *request = new Request(url);
-  string data = request->send();
-  delete request;
-  return data;
+    curltuner tuner = curltuner();
+
+    curl_easy_setopt(tuner.handle, CURLOPT_URL, url.c_str());
+
+    CURLcode result_code = curl_easy_perform(tuner.handle);
+    if(result_code != CURLE_OK) throw new net::Exception(result_code);
+
+    //con::log(tuner.buffer);
+    return tuner.buffer;
 }
 
 string net::POST(string url, const char* data)
 {
-  Request *request = new Request(url);
-  request->setData(data);
-  string _data = request->send();
-  delete request;
-  return _data;
+  curltuner tuner = curltuner();
+
+  curl_easy_setopt(tuner.handle, CURLOPT_URL, url.c_str());
+  curl_easy_setopt(tuner.handle, CURLOPT_POST, 1);
+  curl_easy_setopt(tuner.handle, CURLOPT_POSTFIELDS, data);
+
+  CURLcode result_code = curl_easy_perform(tuner.handle);
+  if(result_code != CURLE_OK) throw new net::Exception(result_code);
+
+  //con::log(tuner.buffer);
+  return tuner.buffer;
 }
 
 string net::POST(string url, map<string, string> &fields)
 {
-  const char* data = makeFields(fields);
-  string _data = POST(url, data);
-  delete data;
-  return _data;
+  return POST(url, makeFields(fields).c_str());
 }

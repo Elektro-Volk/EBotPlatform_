@@ -16,8 +16,6 @@ GNU General Public License for more details.
 #include "vkapi.h"
 #include "lua/luawork.h"
 #include "net.h"
-#include "strutils.h"
-#include "chat_cache.h"
 
 using namespace rapidjson;
 
@@ -28,10 +26,10 @@ LongPollConnection::LongPollConnection()
 
 void LongPollConnection::getServer()
 {
-	con::log("Getting longpoll server...");;
+	con::log("Получение LongPoll сервера...");
 
-  string method = "messages.getLongPollServer";
-	Document document = vk::jSend(method, {{ "lp_version", "3" }});
+  string method = "groups.getLongPollServer";
+	Document document = vk::jSend(method, {{ "group_id", vk::groupid->value }});
 	Value &data = document["response"];
 
 	server = data["server"].GetString();
@@ -41,16 +39,16 @@ void LongPollConnection::getServer()
 
 void LongPollConnection::loop()
 {
-	con::log("LongPoll was successfully launched");
+	con::log("LongPoll успешно запущен.");
 	while (true) {
 		while(!luawork::isWorking){}
 		Document data;
-		data.Parse(net::POST("https://" + server, params).c_str());
+		data.Parse(net::POST(server, params).c_str());
     // Check data
 		if(!data.IsObject()) continue;
 		if(data.HasMember("failed")) { processError(data); continue; }
     // Get value
-		params["ts"] = to_string(data["ts"].GetInt());
+		params["ts"] = data["ts"].GetString();
     // Process updates
 		Value &updates = data["updates"];
 		for (int i = 0; i < updates.Size(); i++) processMessage(updates[i]);
@@ -59,54 +57,14 @@ void LongPollConnection::loop()
 
 void LongPollConnection::processError(rapidjson::Document &err)
 {
-  con::log("LongPoll failed: " + to_string(err["failed"].GetInt()));
+  con::log("Ошибка LongPoll: " + to_string(err["failed"].GetInt()));
   if (err["failed"].GetInt() != 1) getServer();
   else params["ts"] = to_string(err["ts"].GetInt());
 }
 
-void LongPollConnection::processMessage(rapidjson::Value &msg)
+void LongPollConnection::processMessage(rapidjson::Value &upd)
 {
-  if(msg[0] != 4) return; // This is not a message
-  if(longpoll::lp_ignore_myself->getBool() && msg[2].GetInt()&2) return;
-  if(longpoll::lp_debug->getBool()) con::log("LongPoll message: " + to_string(msg[1].GetInt()));
-
-  if (msg[7].HasMember("attach1_type")) { // Have attachments
-    Document result = vk::jSend("messages.getById", {{"message_ids", to_string(msg[1].GetInt())}});
-  	luawork::push(result["response"]["items"][0]);
-  	return;
-  }
-
-  // Build message
-  int peer_id = msg[3].GetInt();
-  bool is_chat = peer_id > 2000000000;
-  int user_id = is_chat ? stoi(msg[6]["from"].GetString()) : peer_id;
-  int flags = msg[2].GetInt();
-	string body = msg[5].GetString();
-	strutils::replace(body, "&amp;", "&");
-	strutils::replace(body, "&apos;", "'");
-	strutils::replace(body, "&quot;", "\"");
-	strutils::replace(body, "&gt;", ">");
-	strutils::replace(body, "&lt;", "<");
-	strutils::replace(body, "<br>", "\n");
-	auto body_value = const_cast<char*>(body.c_str());
-	chat_info *chat = is_chat ? chat_cache::getChat(peer_id - 2000000000) : nullptr;
-
-  Document d(kObjectType);
-  {
-      d.AddMember("id", msg[1], d.GetAllocator());
-      d.AddMember("user_id", Value().SetInt(user_id), d.GetAllocator());
-      d.AddMember("from_id", Value().SetInt(peer_id), d.GetAllocator());
-      d.AddMember("date", msg[4], d.GetAllocator());
-      d.AddMember("read_state", Value().SetInt(flags&1 ? 0 : 1), d.GetAllocator());
-      d.AddMember("out", Value().SetInt(flags&2 ? 1 : 0), d.GetAllocator());
-      d.AddMember("body", Value().SetString(body_value, d.GetAllocator()), d.GetAllocator());
-      if (is_chat) {
-        d.AddMember("chat_id", Value().SetInt(peer_id - 2000000000), d.GetAllocator());
-				d.AddMember("title", Value().SetString(const_cast<char*>(chat->title.c_str()), d.GetAllocator()), d.GetAllocator());
-      }
-			else
-				d.AddMember("title", Value().SetString(" ... "), d.GetAllocator());
-  }
-
-  luawork::push(d);
+  if(upd["type"] != "message_new") return; // This is not a message
+  if(longpoll::lp_debug->getBool()) con::log("Сообщение LongPoll: " + to_string(upd["object"]["id"].GetInt()));
+  luawork::push(upd["object"]);
 }
